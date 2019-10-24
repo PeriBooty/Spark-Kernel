@@ -35,34 +35,25 @@ gdt:
         db 0x00
         .gdt_end:
 
-bits 32
 cpuidavailable:
-    pushfd
-    pushfd
-    xor dword [esp],0x00200000
-    popfd
-    pushfd
-    pop eax
-    xor eax,[esp]
-    popfd
-    and eax,0x00200000
+    pushfq
+    pushfq
+    xor dword [rsp],0x00200000
+    popfq
+    pushfq
+    pop rax
+    xor rax,[rsp]
+    popfq
+    and rax,0x00200000
     ret
 
 section .text
 entry:
     cli
-    mov esp, stack_top
-    push eax
-    push ebx
+    mov rsp, stack_top
+    push rax
+    push rbx
     lgdt [gdt]
-    jmp 0x08:.reload_cs
-    .reload_cs:
-    mov ax, 0x10
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-    mov ss, ax
     cld
     call kernel_main
     .stop:
