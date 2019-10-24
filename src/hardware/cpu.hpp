@@ -55,7 +55,7 @@ const char* intel_other[] = {
     "Reserved"
 };
 
-typedef enum {
+enum cpu_features {
     CPUID_FEAT_ECX_SSE3 = 1 << 0,
     CPUID_FEAT_ECX_PCLMUL = 1 << 1,
     CPUID_FEAT_ECX_DTES64 = 1 << 2,
@@ -112,15 +112,15 @@ typedef enum {
     CPUID_FEAT_EDX_TM1 = 1 << 29,
     CPUID_FEAT_EDX_IA64 = 1 << 30,
     CPUID_FEAT_EDX_PBE = 1 << 31
-} cpu_features_t;
+};
 
-typedef struct {
+struct cpu {
     const char* vendor;
-    const cpu_features_t* features;
-} cpu_t;
+    const cpu_features* features;
+};
 
 class CentralProcessingUnit {
 public:
-    static cpu_t get_cpu();
+    static cpu get_cpu();
     static void cpuid(int, uint32_t*, uint32_t*, uint32_t*, uint32_t*);
 };

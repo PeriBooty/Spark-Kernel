@@ -4,8 +4,8 @@
 
 uint16_t Display::x = 0;
 uint16_t Display::y = 0;
-vga_color_t Display::background = vga_color_t::BLACK;
-vga_color_t Display::foreground = vga_color_t::WHITE;
+VGAColor Display::background = VGAColor::BLACK;
+VGAColor Display::foreground = VGAColor::WHITE;
 bool Display::cursor_enabled = false;
 uint16_t* Display::display_buffer = (uint16_t*)0xb8000;
 

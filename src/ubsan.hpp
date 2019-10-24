@@ -72,7 +72,7 @@ struct type_mismatch_info_v1 {
     uint8_t type_check_kind;
 };
 
-typedef enum {
+enum ubsan_names {
     add_overflow = 0,
     sub_overflow,
     mul_overflow,
@@ -88,7 +88,7 @@ typedef enum {
     nonnull_arg,
     pointer_overflow,
     type_mismatch,
-} ubsan_names_t;
+};
 
 static const char *ubsan_type_strs[] = {
     "add_overflow:",

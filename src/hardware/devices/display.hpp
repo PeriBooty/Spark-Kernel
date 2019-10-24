@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 
-typedef enum {
+enum VGAColor {
     BLACK = 0,
     BLUE = 1,
     CYAN = 3,
@@ -17,7 +17,7 @@ typedef enum {
     LIGHT_MAGENTA = 13,
     YELLOW = 14,
     WHITE = 15
-} vga_color_t;
+};
 
 class Display {
 private:
@@ -42,6 +42,6 @@ public:
     static void write_line(const char);
     static void write_line(const char*);
     static void backspace();
-    static vga_color_t background;
-    static vga_color_t foreground;
+    static VGAColor background;
+    static VGAColor foreground;
 };

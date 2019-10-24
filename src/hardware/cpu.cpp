@@ -8,8 +8,8 @@ void CentralProcessingUnit::cpuid(int code, uint32_t* a, uint32_t* b, uint32_t* 
 
 extern "C" int cpuidavailable();
 
-cpu_t CentralProcessingUnit::get_cpu() {
-    cpu_t cpu{};
+cpu CentralProcessingUnit::get_cpu() {
+    cpu cpu{};
     cpu.vendor = "Unknown CPU";
     cpu.features = {};
     if (cpuidavailable() == 0)

@@ -1,4 +1,6 @@
 #pragma once
 #include <stdint.h>
 
-typedef uint8_t* page_table_t[];
+class page_table {
+    uint64_t entry[512];
+};
