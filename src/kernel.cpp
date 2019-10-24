@@ -4,7 +4,7 @@
 
 extern "C" [[noreturn]] void kernel_main() {
     Display::init();
-    Display::write_line("uwu");
+    Display::write_line("We did it boys, we have achieved long mode!");
     while (1)
         asm volatile("hlt");
 }

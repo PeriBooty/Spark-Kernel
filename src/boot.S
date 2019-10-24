@@ -1,4 +1,4 @@
-bits 64
+bits 32
 %define MAGIC 0x1badb002
 %define FLAGS (1<<0 | 1<<1)
 %define CHECKSUM -(MAGIC + FLAGS)
@@ -36,24 +36,31 @@ gdt:
         .gdt_end:
 
 cpuidavailable:
-    pushfq
-    pushfq
-    xor dword [rsp],0x00200000
-    popfq
-    pushfq
-    pop rax
-    xor rax,[rsp]
-    popfq
-    and rax,0x00200000
-    ret
+    pushfd
+    pushfd
+    xor dword [esp],0x00200000
+    popfd
+    pushfd
+    pop eax
+    xor eax,[esp]
+    popfd
+    and eax,0x00200000
 
 section .text
 entry:
     cli
-    mov rsp, stack_top
-    push rax
-    push rbx
+    mov esp, stack_top
+    push eax
+    push ebx
     lgdt [gdt]
+    jmp 0x08:.reload_cs
+    .reload_cs:
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
     cld
     call kernel_main
     .stop:
