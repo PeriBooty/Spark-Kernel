@@ -12,5 +12,5 @@ public:
 }
 
 [[gnu::always_inline]] static inline uint64_t virtual_to_physical(uint64_t address) {
-    return address - 0x100000000;
+    return address - 0xffffffff80000000;
 }
