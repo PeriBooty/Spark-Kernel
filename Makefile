@@ -1,10 +1,10 @@
-GPPPARAMS = -Isrc -m64 -ffreestanding -fno-use-cxa-atexit -fno-pic \
+GCCPARAMS = -Isrc -m64 -ffreestanding -fno-use-cxa-atexit -fno-pic \
 	-mno-sse -mno-sse2 -fno-builtin -fno-rtti \
-	-fno-exceptions -fno-leading-underscore -fno-stack-protector -std=c++17 -O4 \
-	-fsanitize=undefined -mno-red-zone
+	-fno-exceptions -fno-leading-underscore -fno-stack-protector -std=c++17 -Ofast \
+	-fsanitize=undefined -mno-red-zone -mcmodel=kernel
 CXXFLAGS = -Wall -Wextra
 NASMPARAMS = -f elf64
-LDPARAMS = -melf_x86_64 -no-pie -nostdlib -O4
+LDPARAMS = -melf_x86_64 -no-pie -nostdlib -Ofast
 OBJECTS = out/x86_64/boot.o out/x86_64/kernel.o out/x86_64/hardware/cpu.o out/x86_64/hardware/port.o out/x86_64/hardware/devices/display.o out/x86_64/lib/lib.o
 
 all: clean pre iso
@@ -14,13 +14,13 @@ pre:
 	mkdir -p out/x86_64/lib
 
 out/x86_64/%.o: src/%.cpp
-	x86_64-elf-g++ $(GPPPARAMS) $(CXXFLAGS) -o $@ -c $<
+	x86_64-elf-g++ $(GCCPARAMS) $(CXXFLAGS) -o $@ -c $<
 
 out/x86_64/hardware/%.o: src/hardware/%.cpp
-	x86_64-elf-g++ $(GPPPARAMS) $(CXXFLAGS) -o $@ -c $<
+	x86_64-elf-g++ $(GCCPARAMS) $(CXXFLAGS) -o $@ -c $<
 
 out/x86_64/hardware/devices/%.o: src/hardware/devices/%.cpp
-	x86_64-elf-g++ $(GPPPARAMS) $(CXXFLAGS) -o $@ -c $<
+	x86_64-elf-g++ $(GCCPARAMS) $(CXXFLAGS) -o $@ -c $<
 
 out/x86_64/%.o: src/%.S
 	nasm $< $(NASMPARAMS) -o $@
