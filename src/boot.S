@@ -10,6 +10,7 @@ KERNEL_VMA equ 0xffffffff80000000
 extern kernel_main
 bits 32
 
+global _loader
 global loader
 loader equ (_loader - KERNEL_VMA)
 

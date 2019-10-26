@@ -1,10 +1,10 @@
 GCCPARAMS = -Isrc -m64 -ffreestanding -fno-use-cxa-atexit -fno-pic \
 	-mno-sse -mno-sse2 -fno-builtin -fno-rtti \
-	-fno-exceptions -fno-leading-underscore -fno-stack-protector -std=c++17 -O3 \
-	-fsanitize=undefined -mno-red-zone -mcmodel=kernel
+	-fno-exceptions -fno-leading-underscore -fno-stack-protector -std=c++17 -Og \
+	-fsanitize=undefined -mno-red-zone -mcmodel=kernel -g
 CXXFLAGS = -Wall -Wextra
-NASMPARAMS = -f elf64
-LDPARAMS = -melf_x86_64 -no-pie -nostdlib -O3
+NASMPARAMS = -felf64 -F dwarf -g
+LDPARAMS = -melf_x86_64 -no-pie -nostdlib -Og
 OBJECTS = out/x86_64/boot.o out/x86_64/kernel.o out/x86_64/hardware/cpu.o out/x86_64/hardware/port.o out/x86_64/hardware/devices/display.o out/x86_64/lib/lib.o
 
 all: clean pre iso
@@ -31,13 +31,7 @@ Kernel.bin: src/linker.ld $(OBJECTS)
 iso: Kernel.bin
 	mkdir -p out/x86_64/iso/boot/grub
 	mv out/x86_64/Kernel.bin out/x86_64/iso/boot/Kernel.bin
-	echo 'set timeout=0' >> out/x86_64/iso/boot/grub/grub.cfg
-	echo 'set default=0' >> out/x86_64/iso/boot/grub/grub.cfg
-	echo '' >> out/x86_64/iso/boot/grub/grub.cfg
-	echo 'menuentry "Spark" {' >> out/x86_64/iso/boot/grub/grub.cfg
-	echo '	multiboot /boot/Kernel.bin' >> out/x86_64/iso/boot/grub/grub.cfg
-	echo '	boot' >> out/x86_64/iso/boot/grub/grub.cfg
-	echo '}' >> out/x86_64/iso/boot/grub/grub.cfg
+	cp grub.cfg out/x86_64/iso/boot/grub/grub.cfg
 	grub-mkrescue --output=out/x86_64/SparkOS.iso out/x86_64/iso
 
 clean:
