@@ -1,36 +1,28 @@
-KERNEL_LMA = 0x100000;
-KERNEL_VMA = 0xffffffff80100000;
-ENTRY(entry)
+ENTRY(_loader)
+KERNEL_LMA = 0x0000000000200000;
+KERNEL_VMA = 0xFFFFFFFF80000000;
 
 SECTIONS
 {
-  . = KERNEL_LMA;
-  .text :
-  {
-    KEEP(*(.multiboot))
-    *(.text)
-    . = ALIGN(4K);
-  }
+  . = KERNEL_LMA + KERNEL_VMA;
+  
+  .text : AT(ADDR(.text) - KERNEL_VMA) {
+		*(.multiboot)
+		*(.text)
+		_rodata = .;
+		*(.rodata*)
+	}
 
-  .data :
-  {
-    *(.data)
-    *(.eh_frame)
-    *(.eh_frame_hdr)
-    . = ALIGN(4K);
-  }
+  .data ALIGN (0x1000) : AT(ADDR(.data) - KERNEL_VMA) {
+		*(.data)
+	}
 
-  .bss :
-  {
-    *(.bss)
-    . = ALIGN(4K);
-  }
-
-  .rodata : AT (ADDR (.rodata) - KERNEL_VMA)
-  {
-    *(.rodata)
-    . = ALIGN(4K);
-  }
+	.bss : AT(ADDR(.bss) - KERNEL_VMA) {
+		_sbss = .;
+		*(COMMON)
+		*(.bss)
+		_ebss = .;
+	}
 
   /DISCARD/ : { *(.fini_array*) *(.comment) }
 }

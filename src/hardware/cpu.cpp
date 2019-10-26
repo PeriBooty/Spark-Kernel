@@ -6,13 +6,13 @@ void CentralProcessingUnit::cpuid(int code, uint32_t* a, uint32_t* b, uint32_t* 
                  : "a"(code));
 }
 
-extern "C" int cpuidavailable();
+extern "C" int cpuid_available();
 // TODO: Rewrite this shit code
 cpu CentralProcessingUnit::get_cpu() {
     cpu cpu{};
     cpu.vendor = "Unknown CPU";
     cpu.features = {};
-    if (cpuidavailable() == 0)
+    if (cpuid_available() == 0)
         return cpu;
     uint32_t magic_code, unused;
     cpuid(0, &unused, &magic_code, &unused, &unused);
