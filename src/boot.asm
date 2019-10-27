@@ -14,9 +14,6 @@ global _loader
 global loader
 loader equ (_loader - KERNEL_VMA)
 
-global cpuid_available
-cpuid_available equ (_cpuid_available - KERNEL_VMA)
-
 section .multiboot
 align 64
 mb_header:
@@ -95,26 +92,10 @@ init_gdt_ptr_high:
 
 section .text
 
-_cpuid_available:
-    pushfd
-    pop eax
-    mov ecx, eax
-    xor eax, 1 << 21
-    push eax
-    popfd
-    pushfd
-    pop eax
-    push ecx
-    popfd
-    xor eax, ecx
-    jz stop
-    ret
-
 _loader:
     cli
     lgdt [init_gdt_ptr - KERNEL_VMA]
     mov esp, stack_end - KERNEL_VMA
-    call cpuid_available
     mov eax, 0x80000000
     cpuid
     cmp eax, 0x80000001
