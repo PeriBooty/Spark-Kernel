@@ -112,7 +112,9 @@ _cpuid_available:
 
 _loader:
     cli
-    jmp cpuid_available
+    lgdt [init_gdt_ptr - KERNEL_VMA]
+    mov esp, stack_end - KERNEL_VMA
+	call cpuid_available
     mov eax, 0x80000000
     cpuid
     cmp eax, 0x80000001
@@ -121,8 +123,6 @@ _loader:
     cpuid
     test edx, 1 << 29
     jz stop  
-    lgdt [init_gdt_ptr - KERNEL_VMA]
-    mov esp, stack_end - KERNEL_VMA
 	push 0
 	push eax
 	push 0
@@ -159,8 +159,6 @@ _entry:
 	mov fs, ax
 	add rsp, KERNEL_VMA
 	pop rdi
-	pop rsi
-    push rax
     call kernel_main
     hlt
 

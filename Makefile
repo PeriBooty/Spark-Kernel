@@ -23,7 +23,7 @@ out/x86_64/hardware/%.o: src/hardware/%.cpp
 out/x86_64/hardware/devices/%.o: src/hardware/devices/%.cpp
 	x86_64-elf-g++ $(GCCPARAMS) $(CXXFLAGS) -o $@ -c $<
 
-out/x86_64/%.o: src/%.S
+out/x86_64/%.o: src/%.asm
 	nasm $< $(NASMPARAMS) -o $@
 
 Kernel.bin: src/linker.ld $(OBJECTS)
