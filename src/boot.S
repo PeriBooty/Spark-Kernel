@@ -23,14 +23,14 @@ mb_header:
     dd MAGIC
     dd FLAGS
     dd CHECKSUM
-	dd 0
-	dd 0
-	dd 0
-	dd 0
-	dd 0
-	dd 0
-	dd 0
-	dd 0
+    dd 0
+    dd 0
+    dd 0
+    dd 0
+    dd 0
+	dd 1
+	dd 1280
+	dd 720
 	dd 32
 
 section .data
@@ -161,7 +161,6 @@ _entry:
 	pop rdi
 	pop rsi
     push rax
-    push rbx
     call kernel_main
     hlt
 

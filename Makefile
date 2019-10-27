@@ -5,7 +5,8 @@ GCCPARAMS = -Isrc -m64 -ffreestanding -fno-use-cxa-atexit -fno-pic \
 CXXFLAGS = -Wall -Wextra
 NASMPARAMS = -felf64 -F dwarf -g
 LDPARAMS = -melf_x86_64 -no-pie -nostdlib -Og
-OBJECTS = out/x86_64/boot.o out/x86_64/kernel.o out/x86_64/hardware/cpu.o out/x86_64/hardware/port.o out/x86_64/hardware/devices/display.o out/x86_64/lib/lib.o
+OBJECTS = out/x86_64/boot.o out/x86_64/kernel.o out/x86_64/hardware/port.o \
+	out/x86_64/hardware/devices/display.o out/x86_64/lib/lib.o out/x86_64/hardware/memory.o
 
 all: clean pre iso
 

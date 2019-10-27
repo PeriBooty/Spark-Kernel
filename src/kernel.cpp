@@ -1,9 +1,11 @@
 #include <stdint.h>
 #include <hardware/devices/display.hpp>
+#include <multiboot.hpp>
 #include <ubsan.hpp>
 
-extern "C" [[noreturn]] void kernel_main() {
-    Display::init();
+extern "C" void kernel_main(void *mb_info_ptr) {
+    multiboot_info &mb_info = *(multiboot_info *)mb_info_ptr;
+    Display::init(mb_info.framebuffer_addr, mb_info.framebuffer_width, mb_info.framebuffer_height);
     Display::write_line("OK THIS IS EPIC");
     while (1)
         asm volatile("hlt");

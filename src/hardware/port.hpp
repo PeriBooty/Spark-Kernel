@@ -3,6 +3,6 @@
 
 class Port {
 public:
-    static void outb(uint16_t, uint8_t);
-    static uint8_t inb(uint16_t);
+    static void outb(uint16_t port, uint8_t value);
+    static uint8_t inb(uint16_t port);
 };

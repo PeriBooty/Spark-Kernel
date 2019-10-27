@@ -21,26 +21,26 @@ enum VGAColor {
 
 class Display {
 private:
-    const static uint8_t width = 80;
-    const static uint8_t height = 15;
+    static uint16_t width;
+    static uint16_t height;
     static uint16_t y;
     static uint16_t x;
-    static uint16_t* display_buffer;
-    static uint16_t prepare_char(const char);
+    static uint64_t* display_buffer;
+    static uint16_t prepare_char(const char c);
     static bool cursor_enabled;
 
 public:
-    static void set_cursor_pos(int, int);
-    static void init();
+    static void set_cursor_pos(int x, int y);
+    static void init(uint64_t fb, uint16_t width, uint16_t height);
     static bool is_cursor_enabled();
-    static void toggle_cursor(bool);
+    static void toggle_cursor(bool enable);
     static void clear();
     static void handle_write_pos();
-    static bool handle_special_characters(const char);
-    static void write(const char);
-    static void write(const char*);
-    static void write_line(const char);
-    static void write_line(const char*);
+    static bool handle_special_characters(const char c);
+    static void write(const char c);
+    static void write(const char* str);
+    static void write_line(const char c);
+    static void write_line(const char* str);
     static void backspace();
     static VGAColor background;
     static VGAColor foreground;
