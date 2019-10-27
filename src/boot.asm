@@ -96,6 +96,10 @@ _loader:
     cli
     lgdt [init_gdt_ptr - KERNEL_VMA]
     mov esp, stack_end - KERNEL_VMA
+	push 0
+    push eax
+    push 0
+    push ebx 
     mov eax, 0x80000000
     cpuid
     cmp eax, 0x80000001
@@ -104,10 +108,6 @@ _loader:
     cpuid
     test edx, 1 << 29
     jz stop  
-    push 0
-    push eax
-    push 0
-    push ebx 
     mov eax, cr4
     or eax, 0x000000A0
     mov cr4, eax

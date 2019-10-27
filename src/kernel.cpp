@@ -5,7 +5,7 @@
 
 extern "C" void kernel_main(void *mb_info_ptr) {
     multiboot_info &mb_info = *(multiboot_info *)mb_info_ptr;
-    Display::init(mb_info.framebuffer_addr, mb_info.framebuffer_width, mb_info.framebuffer_height);
+    Display::init(mb_info.framebuffer_addr + 0xFFFFFFFF80000000, mb_info.framebuffer_width, mb_info.framebuffer_height);
     Display::write_line("OK THIS IS EPIC");
     while (1)
         asm volatile("hlt");

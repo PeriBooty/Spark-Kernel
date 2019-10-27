@@ -2,18 +2,19 @@
 #include <hardware/port.hpp>
 #include <lib/lib.hpp>
 
-
 uint16_t Display::width = 1280;
 uint16_t Display::height = 720;
 uint16_t Display::x = 0;
 uint16_t Display::y = 0;
 VGAColor Display::background = VGAColor::BLACK;
-VGAColor Display::foreground = VGAColor::WHITE;
+VGAColor Display::foreground = VGAColor::LIGHT_GREEN;
 bool Display::cursor_enabled = false;
-uint64_t* Display::display_buffer = nullptr;
+uint16_t* Display::display_buffer = nullptr;
 
 void Display::init(uint64_t fb, uint16_t width, uint16_t height) {
-    display_buffer = (uint64_t*)fb;
+    display_buffer = (uint16_t*)fb;
+    Display::width = width;
+    Display::height = height;
     clear();
     toggle_cursor(true);
 }

@@ -25,7 +25,7 @@ private:
     static uint16_t height;
     static uint16_t y;
     static uint16_t x;
-    static uint64_t* display_buffer;
+    static uint16_t* display_buffer;
     static uint16_t prepare_char(const char c);
     static bool cursor_enabled;
 
