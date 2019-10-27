@@ -103,15 +103,7 @@ bool Display::is_cursor_enabled() {
 
 void Display::toggle_cursor(bool enabled) {
     cursor_enabled = enabled;
-    if (enabled) {
-        Port::outb(0x3D4, 0x0A);
-        Port::outb(0x3D5, (Port::inb(0x3D5) & 0xC0) | 0);
-        Port::outb(0x3D4, 0x0B);
-        Port::outb(0x3D5, (Port::inb(0x3D5) & 0xE0) | 15);
-    } else {
-        Port::outb(0x3D4, 0x0A);
-        Port::outb(0x3D5, 0x20);
-    }
+    // to be implemented in another galaxy
 }
 
 void Display::set_cursor_pos(int newx, int newy) {
@@ -119,12 +111,7 @@ void Display::set_cursor_pos(int newx, int newy) {
         return;
     x = newx;
     y = newy;
-    uint16_t pos = y * width + x;
-
-    Port::outb(0x3D4, 0x0F);
-    Port::outb(0x3D5, (uint8_t)(pos & 0xFF));
-    Port::outb(0x3D4, 0x0E);
-    Port::outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
+    // to be implemented in another galaxy
 }
 
 void Display::backspace() {
@@ -133,6 +120,6 @@ void Display::backspace() {
         y--;
     } else if (x > 0)
         x--;
-    display_buffer[y * width + x] = prepare_char(' ');
+    // to be implemented in another galaxy
     set_cursor_pos(x, y);
 }

@@ -5,7 +5,7 @@ FLAGS equ MODULEALIGN | MEMINFO | VIDEO
 MAGIC equ 0x1BADB002
 CHECKSUM equ -(MAGIC + FLAGS)
 
-KERNEL_VMA equ 0xffffffff80000000
+KERNEL_VMA equ 0xFFFFFFFF80000000
 
 extern kernel_main
 bits 32
@@ -25,7 +25,7 @@ mb_header:
     dd 0
     dd 0
     dd 0
-    dd 1
+    dd 0
     dd 1280
     dd 720
     dd 32
