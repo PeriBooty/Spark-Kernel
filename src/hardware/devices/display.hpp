@@ -23,15 +23,15 @@ class Display {
 private:
     static uint16_t width;
     static uint16_t height;
+    static uint8_t bpp;
     static uint16_t y;
     static uint16_t x;
-    static uint16_t* display_buffer;
-    static uint16_t prepare_char(const char c);
+    static uint64_t* display_buffer;
     static bool cursor_enabled;
 
 public:
     static void set_cursor_pos(int x, int y);
-    static void init(uint64_t fb, uint16_t width, uint16_t height);
+    static void init(uint64_t fb, uint16_t width, uint16_t height, uint8_t bpp);
     static bool is_cursor_enabled();
     static void toggle_cursor(bool enable);
     static void clear();
@@ -41,6 +41,7 @@ public:
     static void write(const char* str);
     static void write_line(const char c);
     static void write_line(const char* str);
+    static void set_pixel(uint16_t x, uint16_t y, uint16_t color);
     static void backspace();
     static VGAColor background;
     static VGAColor foreground;

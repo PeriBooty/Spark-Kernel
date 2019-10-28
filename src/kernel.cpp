@@ -1,12 +1,21 @@
 #include <stdint.h>
 #include <hardware/devices/display.hpp>
+#include <hardware/mm/mm.hpp>
 #include <multiboot.hpp>
 #include <ubsan.hpp>
 
 extern "C" void kernel_main(void *mb_info_ptr) {
-    multiboot_info &mb_info = *(multiboot_info *)mb_info_ptr;
-    Display::init(mb_info.framebuffer_addr + 0xFFFFFFFF80000000, mb_info.framebuffer_width, mb_info.framebuffer_height);
-    Display::write_line("OK THIS IS EPIC");
+    MultibootInfo &mb_info = *(MultibootInfo *)mb_info_ptr;
+    init_pmm((MultibootMemoryMap *)(uint64_t)mb_info.mmap_addr);
+    uint64_t virtual_fb_addr = mb_info.framebuffer_addr + KERNEL_VMA;
+    uint64_t* pml4;
+    asm volatile("mov %%cr3, %0": "=r"(pml4)::);
+    if (map_address(pml4, 3, mb_info.framebuffer_addr, virtual_fb_addr)) {
+        Display::init(virtual_fb_addr, mb_info.framebuffer_width, mb_info.framebuffer_height, mb_info.framebuffer_bpp);
+        Display::write_line("OK THIS IS EPIC");
+    }
+    else
+        return;
     while (1)
         asm volatile("hlt");
 }

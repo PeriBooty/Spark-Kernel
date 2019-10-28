@@ -15,7 +15,7 @@ enum MultibootMemoryState {
     BADRAM = 5,
 };
 
-struct multiboot_header {
+struct MultibootHeader {
     uint32_t magic;
     uint32_t flags;
     uint32_t checksum;
@@ -30,21 +30,21 @@ struct multiboot_header {
     uint32_t depth;
 };
 
-struct multiboot_aout_symbol_table {
+struct MultibootAoutSymbolTable {
     uint32_t tabsize;
     uint32_t strsize;
     uint32_t addr;
     uint32_t reserved;
 };
 
-struct multiboot_elf_section_header_table {
+struct MultibootElfSectionHeaderTable {
     uint32_t num;
     uint32_t size;
     uint32_t addr;
     uint32_t shndx;
 };
 
-struct multiboot_info {
+struct MultibootInfo {
     uint32_t flags;
     uint32_t mem_lower;
     uint32_t mem_upper;
@@ -53,8 +53,8 @@ struct multiboot_info {
     uint32_t mods_count;
     uint32_t mods_addr;
     union {
-        multiboot_aout_symbol_table aout_sym;
-        multiboot_elf_section_header_table elf_sec;
+        MultibootAoutSymbolTable aout_sym;
+        MultibootElfSectionHeaderTable elf_sec;
     } u;
     uint32_t mmap_length;
     uint32_t mmap_addr;
@@ -93,27 +93,27 @@ struct multiboot_info {
     };
 };
 
-struct multiboot_color {
+struct MultibootColor {
     uint8_t red;
     uint8_t green;
     uint8_t blue;
 };
 
-struct multiboot_memory_map {
+struct [[gnu::packed]] MultibootMemoryMap {
     uint32_t size;
     uint64_t addr;
     uint64_t len;
     uint32_t type;
-} __attribute__((packed));
+};
 
-struct multiboot_module {
+struct MultibootModule {
     uint32_t mod_start;
     uint32_t mod_end;
     uint32_t cmdline;
     uint32_t pad;
 };
 
-struct multiboot_apm_info {
+struct MultibootApmInfo {
     uint16_t version;
     uint16_t cseg;
     uint32_t offset;

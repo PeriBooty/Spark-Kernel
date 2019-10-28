@@ -1,10 +1,9 @@
 ENTRY(_loader)
-KERNEL_LMA = 0x0000000000200000;
 KERNEL_VMA = 0xFFFFFFFF80000000;
 
 SECTIONS
 {
-  . = KERNEL_LMA + KERNEL_VMA;
+  . = KERNEL_VMA + 0x1000000;
   
   .text : AT(ADDR(.text) - KERNEL_VMA) {
 		*(.multiboot)

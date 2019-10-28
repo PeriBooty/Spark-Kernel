@@ -1,4 +1,4 @@
-#include "font.hpp"
+#include <hardware/devices/font.hpp>
 
 // character bitmap for each encoding
 static const unsigned char __font_bitmap__[] = {
@@ -52574,7 +52574,7 @@ static const unsigned short __font_index__[] = {
     65273, 65274, 65275, 65276, 65279, 65533,
 };
 
-const bitmap_font uni_vga_font = {
+BitmapFont uni_vga_font = {
     .width = 8,
     .height = 16,
     .chars = 2899,
