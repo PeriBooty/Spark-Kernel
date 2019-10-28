@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <multiboot.hpp>
 #define KERNEL_VMA ((size_t)0xFFFFFFFF80000000)
+#define PHYSICAL_MEM_MAPPING ((size_t)0xFFFF800000000000)
 #define MEMORY_BASE ((size_t)0x1000000)
 #define PAGE_SIZE ((size_t)4096)
 #define BITMAP_BASE (MEMORY_BASE / PAGE_SIZE)

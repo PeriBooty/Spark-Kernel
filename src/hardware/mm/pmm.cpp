@@ -83,7 +83,7 @@ void change_alloc_method() {
 void *calloc(size_t pg_count) {
     void *ptr = malloc(pg_count);
     if (!ptr) return NULL;
-    uint64_t *pages = (uint64_t *)(ptr + KERNEL_VMA);
+    uint64_t *pages = (uint64_t *)(ptr + PHYSICAL_MEM_MAPPING);
     for (size_t i = 0; i < (pg_count * PAGE_SIZE) / sizeof(uint64_t); i++)
         pages[i] = 0;
     return ptr;
@@ -101,7 +101,7 @@ void init_pmm(MultibootMemoryMap *mmap) {
             ;
     }
 
-    tmp_bitmap = (uint32_t *)((size_t)tmp_bitmap + KERNEL_VMA);
+    tmp_bitmap = (uint32_t *)((size_t)tmp_bitmap + PHYSICAL_MEM_MAPPING);
     for (size_t i = 0; i < (BMREALLOC_STEP * PAGE_SIZE) / sizeof(uint32_t); i++)
         tmp_bitmap[i] = 0xFFFFFFFF;
 
