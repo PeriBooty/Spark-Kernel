@@ -14,6 +14,10 @@ extern void *(*malloc)(size_t pg_count);
 extern void *calloc(size_t pg_count);
 extern void free(void *ptr, size_t pg_count);
 void change_alloc_method();
+void init_vmm();
 
 void init_pmm(MultibootMemoryMap *mmap);
 int map_address(uint64_t *pml4, uint16_t flags, uint64_t physical_address, size_t address);
+
+static uint64_t memory_size = 0;
+static MultibootMemoryMap memory_map[256];

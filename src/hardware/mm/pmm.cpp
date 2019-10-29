@@ -4,15 +4,13 @@
 #include <lib/bit.hpp>
 #include <multiboot.hpp>
 
-static volatile uint32_t *memory_bitmap = nullptr;
+static volatile uint32_t *memory_bitmap;
 static volatile uint32_t initial_bitmap[] = { 0xffffff7f };
 static volatile uint32_t *tmp_bitmap;
 static size_t bitmap_entries = 32;
 static size_t total_pages = 1;
 static size_t free_pages = 1;
 static size_t cur_ptr = BITMAP_BASE;
-uint64_t memory_size;
-MultibootMemoryMap memory_map[256];
 
 [[gnu::always_inline]] static inline int read_bitmap(size_t i) {
     i -= BITMAP_BASE;
@@ -108,31 +106,45 @@ void init_pmm(MultibootMemoryMap *mmap) {
     memory_bitmap = tmp_bitmap;
     bitmap_entries = ((PAGE_SIZE / sizeof(uint32_t)) * 32) * BMREALLOC_STEP;
 
-    size_t usable_ram_entry_count = 0, j = 0;
     for (size_t i = 0; mmap[i].type; i++) {
-        if (mmap[i].type == MultibootMemoryState::AVAILABLE) {
-            usable_ram_entry_count++;
-            memory_map[j++] = mmap[i];
-        }
-    }
-    for (size_t i = 0; mmap[i].type; i++) {
-        if (mmap[i].type != MultibootMemoryState::AVAILABLE)
-            memory_map[j++] = mmap[i];
-    }
+        size_t aligned_base;
+        if (mmap[i].addr % PAGE_SIZE)
+            aligned_base = mmap[i].addr + (PAGE_SIZE - (mmap[i].addr % PAGE_SIZE));
+        else
+            aligned_base = mmap[i].addr;
+        size_t aligned_length = (mmap[i].len / PAGE_SIZE) * PAGE_SIZE;
+        if ((mmap[i].addr % PAGE_SIZE) && aligned_length) aligned_length -= PAGE_SIZE;
 
-    for (size_t i = 0; i < usable_ram_entry_count - 1; i++) {
-        size_t t = usable_ram_entry_count - i - 1;
-        for (size_t j = 0; j < t; j++) {
-            if (memory_map[j].addr > memory_map[j + 1].addr) {
-                MultibootMemoryMap e = memory_map[j];
-                memory_map[j] = memory_map[j + 1];
-                memory_map[j + 1] = e;
+        for (size_t j = 0; j * PAGE_SIZE < aligned_length; j++) {
+            size_t addr = aligned_base + j * PAGE_SIZE;
+
+            size_t page = addr / PAGE_SIZE;
+
+            if (addr < (MEMORY_BASE + PAGE_SIZE))
+                continue;
+
+            if (addr >= (MEMORY_BASE + bitmap_entries * PAGE_SIZE)) {
+                size_t cur_bitmap_size_in_pages = ((bitmap_entries / 32) * sizeof(uint32_t)) / PAGE_SIZE;
+                size_t new_bitmap_size_in_pages = cur_bitmap_size_in_pages + BMREALLOC_STEP;
+                if (!(tmp_bitmap = (uint32_t *)calloc(new_bitmap_size_in_pages))) {
+                    for (;;)
+                        ;
+                }
+                tmp_bitmap = (uint32_t *)((size_t)tmp_bitmap + PHYSICAL_MEM_MAPPING);
+                for (size_t i = 0; i < (cur_bitmap_size_in_pages * PAGE_SIZE) / sizeof(uint32_t); i++)
+                    tmp_bitmap[i] = memory_bitmap[i];
+                for (size_t i = (cur_bitmap_size_in_pages * PAGE_SIZE) / sizeof(uint32_t); i < (new_bitmap_size_in_pages * PAGE_SIZE) / sizeof(uint32_t); i++)
+                    tmp_bitmap[i] = 0xffffffff;
+                bitmap_entries += ((PAGE_SIZE / sizeof(uint32_t)) * 32) * BMREALLOC_STEP;
+                uint32_t *old_bitmap = (uint32_t *)((size_t)memory_bitmap - PHYSICAL_MEM_MAPPING);
+                memory_bitmap = tmp_bitmap;
+                free(old_bitmap, cur_bitmap_size_in_pages);
+            }
+
+            if (mmap[i].type == 1) {
+                total_pages++;
+                unset_bitmap(page, 1);
             }
         }
-    }
-
-    for (size_t i = 0; memory_map[i].type; i++) {
-        if (memory_map[i].type == MultibootMemoryState::AVAILABLE)
-            memory_size += memory_map[i].len;
     }
 }

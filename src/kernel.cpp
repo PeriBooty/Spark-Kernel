@@ -7,9 +7,10 @@
 extern "C" void kernel_main(void *mb_info_ptr) {
     MultibootInfo &mb_info = *(MultibootInfo *)mb_info_ptr;
     init_pmm((MultibootMemoryMap *)(uint64_t)mb_info.mmap_addr);
+    init_vmm();
     uint64_t virtual_fb_addr = mb_info.framebuffer_addr + PHYSICAL_MEM_MAPPING;
     uint64_t* pml4;
-    asm volatile("mov %%cr3, %0": "=r"(pml4)::);
+    asm volatile("mov %0, %%cr3": "=r"(pml4)::);
     if (map_address(pml4, 3, mb_info.framebuffer_addr, virtual_fb_addr)) {
         Display::init(virtual_fb_addr, mb_info.framebuffer_width, mb_info.framebuffer_height, mb_info.framebuffer_bpp);
         Display::write_line("OK THIS IS EPIC");
