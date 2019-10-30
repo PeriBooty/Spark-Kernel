@@ -1,12 +1,5 @@
 #include <lib/lib.hpp>
 
-void* memset(void* s, int c, size_t n) {
-    unsigned char* p = (unsigned char*)s;
-    while (n--)
-        *p++ = (unsigned char)c;
-    return s;
-}
-
 size_t strlen(const char* chr) {
     size_t size = 0;
     while (*chr++)

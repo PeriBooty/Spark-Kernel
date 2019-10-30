@@ -1,5 +1,6 @@
 #include <hardware/devices/display.hpp>
 #include <hardware/devices/font.hpp>
+#include <hardware/mm/mm.hpp>
 #include <hardware/port.hpp>
 #include <lib/lib.hpp>
 
@@ -19,6 +20,7 @@ void Display::init(uint64_t fb, uint16_t width, uint16_t height, uint8_t bpp) {
     Display::width = width;
     Display::height = height;
     Display::bpp = bpp;
+    memset(Display::display_buffer, 0xFF, width * height * bpp);
     //clear();
     toggle_cursor(true);
 }

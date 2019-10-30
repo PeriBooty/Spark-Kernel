@@ -2,22 +2,26 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <multiboot.hpp>
-#define KERNEL_VMA ((size_t)0xFFFFFFFF80000000)
-#define PHYSICAL_MEM_MAPPING ((size_t)0xFFFF800000000000)
-#define MEMORY_BASE ((size_t)0x1000000)
-#define PAGE_SIZE ((size_t)4096)
-#define BITMAP_BASE (MEMORY_BASE / PAGE_SIZE)
-#define BMREALLOC_STEP 1
-#define PAGE_TABLE_ENTRIES 512
+#define KERNEL_VMA 0xFFFF800000000000UL
+#define VIRT_PHYS_BASE 0xFFFF800000000000UL
+#define PAGE_SIZE 0x1000
+#define MEMORY_BASE 0x2000000
+#define HEAP_BASE 0x200000000
 
-extern void *(*malloc)(size_t pg_count);
-extern void *calloc(size_t pg_count);
-extern void free(void *ptr, size_t pg_count);
-void change_alloc_method();
-void init_vmm();
+enum MemoryFlags {
+    READ = 0x01,
+    WRITE = 0x02,
+    EXECUTE = 0x04,
+    USER = 0x08,
+    NO_CACHE = 0x10,
+};
 
-void init_pmm(MultibootMemoryMap *mmap);
-int map_address(uint64_t *pml4, uint16_t flags, uint64_t physical_address, size_t address);
-
-static uint64_t memory_size = 0;
-static MultibootMemoryMap memory_map[256];
+void *malloc(size_t blocks);
+void *calloc(size_t blocks);
+int free(void *memory);
+void *memset(void *s, int c, size_t n);
+void *memcpy (void *dest, const void *src, size_t len);
+int mm_map_kernel(int cpu, void *dst, void *src, size_t size, int flags);
+int mm_unmap_kernel(int cpu, void *dst, size_t size);
+uintptr_t mm_get_phys_kernel(int cpu, void *dst);
+int mm_get_flags_kernel(int cpu, void *dst);

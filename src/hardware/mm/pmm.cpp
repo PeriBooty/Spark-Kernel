@@ -1,150 +1,118 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <hardware/mm/mm.hpp>
+#include <hardware/mm/pmm.hpp>
 #include <lib/bit.hpp>
 #include <multiboot.hpp>
+#define ROUND_UP(N, S) ((((N) + (S)-1) / (S)) * (S))
+#define ROUND_DOWN(N, S) ((N / S) * S)
+#define OVERLAPS(a, as, b, bs) ((a) >= (b) && (a + as) <= (b + bs))
 
-static volatile uint32_t *memory_bitmap;
-static volatile uint32_t initial_bitmap[] = { 0xffffff7f };
-static volatile uint32_t *tmp_bitmap;
-static size_t bitmap_entries = 32;
-static size_t total_pages = 1;
-static size_t free_pages = 1;
-static size_t cur_ptr = BITMAP_BASE;
+uint64_t *pmm_bitmap = NULL;
+static size_t pmm_free_pages = 0;
+static size_t pmm_total_pages = 0;
+size_t pmm_bitmap_len = 64;
 
-[[gnu::always_inline]] static inline int read_bitmap(size_t i) {
-    i -= BITMAP_BASE;
-    uint32_t bitmap_index = i / 32;
-    uint32_t index_bit = i % 32;
-    return test_bit(memory_bitmap[bitmap_index], index_bit);
+static int pmm_bit_read(size_t idx) {
+    size_t off = idx / 64, mask = (1 << (idx % 64));
+    return (pmm_bitmap[off] & mask) == mask;
 }
 
-[[gnu::always_inline]] static inline void set_bitmap(size_t i, size_t count) {
-    i -= BITMAP_BASE;
-    free_pages -= count;
-    for (size_t j = i; j < i + count; j++)
-        set_bit(memory_bitmap[j / 32], j % 32);
-}
-
-[[gnu::always_inline]] static inline void unset_bitmap(size_t i, size_t count) {
-    i -= BITMAP_BASE;
-    free_pages += count;
-    size_t f = i + count;
-    for (size_t j = i; j < f; j++)
-        reset_bit(memory_bitmap[j / 32], j % 32);
-}
-
-static void *malloc_slow(size_t pg_count) {
-    size_t pg_cnt = pg_count, i;
-    for (i = BITMAP_BASE; i < BITMAP_BASE + bitmap_entries;) {
-        if (!read_bitmap(i++)) {
-            if (!--pg_cnt)
-                goto found;
-        } else
-            pg_cnt = pg_count;
-    }
-    return NULL;
-
-found:;
-    size_t start = i - pg_count;
-    set_bitmap(start, pg_count);
-    return (void *)(start * PAGE_SIZE);
-}
-
-static void *malloc_fast(size_t pg_count) {
-    size_t pg_cnt = pg_count;
-    for (size_t i = 0; i < bitmap_entries; i++) {
-        if (cur_ptr == BITMAP_BASE + bitmap_entries) {
-            cur_ptr = BITMAP_BASE;
-            pg_cnt = pg_count;
-        }
-        if (!read_bitmap(cur_ptr++)) {
-            if (!--pg_cnt)
-                goto found;
-        } else
-            pg_cnt = pg_count;
-    }
-    return NULL;
-
-found:;
-    size_t start = cur_ptr - pg_count;
-    set_bitmap(start, pg_count);
-    return (void *)(start * PAGE_SIZE);
-}
-
-void *(*malloc)(size_t pg_count) = malloc_slow;
-
-void change_alloc_method() {
-    malloc = malloc_fast;
-}
-
-void *calloc(size_t pg_count) {
-    void *ptr = malloc(pg_count);
-    if (!ptr) return NULL;
-    uint64_t *pages = (uint64_t *)(ptr + PHYSICAL_MEM_MAPPING);
-    for (size_t i = 0; i < (pg_count * PAGE_SIZE) / sizeof(uint64_t); i++)
-        pages[i] = 0;
-    return ptr;
-}
-
-void free(void *ptr, size_t pg_count) {
-    size_t start = (size_t)ptr / PAGE_SIZE;
-    unset_bitmap(start, pg_count);
-}
-
-void init_pmm(MultibootMemoryMap *mmap) {
-    memory_bitmap = initial_bitmap;
-    if (!(tmp_bitmap = (uint32_t *)calloc(BMREALLOC_STEP))) {
-        for (;;)
-            ;
-    }
-
-    tmp_bitmap = (uint32_t *)((size_t)tmp_bitmap + PHYSICAL_MEM_MAPPING);
-    for (size_t i = 0; i < (BMREALLOC_STEP * PAGE_SIZE) / sizeof(uint32_t); i++)
-        tmp_bitmap[i] = 0xFFFFFFFF;
-
-    memory_bitmap = tmp_bitmap;
-    bitmap_entries = ((PAGE_SIZE / sizeof(uint32_t)) * 32) * BMREALLOC_STEP;
-
-    for (size_t i = 0; mmap[i].type; i++) {
-        size_t aligned_base;
-        if (mmap[i].addr % PAGE_SIZE)
-            aligned_base = mmap[i].addr + (PAGE_SIZE - (mmap[i].addr % PAGE_SIZE));
+static void bit_write(size_t idx, int bit, size_t count) {
+    for (; count; count--, idx++) {
+        size_t off = idx / 64, mask = (1 << (idx % 64));
+        if (bit)
+            pmm_bitmap[off] |= mask;
         else
-            aligned_base = mmap[i].addr;
-        size_t aligned_length = (mmap[i].len / PAGE_SIZE) * PAGE_SIZE;
-        if ((mmap[i].addr % PAGE_SIZE) && aligned_length) aligned_length -= PAGE_SIZE;
+            pmm_bitmap[off] &= ~mask;
+    }
+}
 
-        for (size_t j = 0; j * PAGE_SIZE < aligned_length; j++) {
-            size_t addr = aligned_base + j * PAGE_SIZE;
+static int bitmap_is_free(size_t idx, size_t count) {
+    for (; count; idx++, count--) {
+        if (pmm_bit_read(idx))
+            return 0;
+    }
+    return 1;
+}
 
-            size_t page = addr / PAGE_SIZE;
-
-            if (addr < (MEMORY_BASE + PAGE_SIZE))
-                continue;
-
-            if (addr >= (MEMORY_BASE + bitmap_entries * PAGE_SIZE)) {
-                size_t cur_bitmap_size_in_pages = ((bitmap_entries / 32) * sizeof(uint32_t)) / PAGE_SIZE;
-                size_t new_bitmap_size_in_pages = cur_bitmap_size_in_pages + BMREALLOC_STEP;
-                if (!(tmp_bitmap = (uint32_t *)calloc(new_bitmap_size_in_pages))) {
-                    for (;;)
-                        ;
-                }
-                tmp_bitmap = (uint32_t *)((size_t)tmp_bitmap + PHYSICAL_MEM_MAPPING);
-                for (size_t i = 0; i < (cur_bitmap_size_in_pages * PAGE_SIZE) / sizeof(uint32_t); i++)
-                    tmp_bitmap[i] = memory_bitmap[i];
-                for (size_t i = (cur_bitmap_size_in_pages * PAGE_SIZE) / sizeof(uint32_t); i < (new_bitmap_size_in_pages * PAGE_SIZE) / sizeof(uint32_t); i++)
-                    tmp_bitmap[i] = 0xffffffff;
-                bitmap_entries += ((PAGE_SIZE / sizeof(uint32_t)) * 32) * BMREALLOC_STEP;
-                uint32_t *old_bitmap = (uint32_t *)((size_t)memory_bitmap - PHYSICAL_MEM_MAPPING);
-                memory_bitmap = tmp_bitmap;
-                free(old_bitmap, cur_bitmap_size_in_pages);
-            }
-
-            if (mmap[i].type == 1) {
-                total_pages++;
-                unset_bitmap(page, 1);
-            }
+static uintptr_t pmm_find_avail_memory_top(MultibootMemoryMap *mmap, size_t mmap_len) {
+    uintptr_t top = 0;
+    for (size_t i = 0; i < mmap_len; i++) {
+        if (mmap[i].type == MultibootMemoryState::AVAILABLE) {
+            if (mmap[i].addr + mmap[i].len > top)
+                top = mmap[i].addr + mmap[i].len;
         }
     }
+    return top;
+}
+
+void pmm_init(MultibootMemoryMap *mmap, size_t mmap_len) {
+    uintptr_t mem_top = pmm_find_avail_memory_top(mmap, mmap_len);
+    uint32_t mem_pages = (mem_top + PAGE_SIZE - 1) / PAGE_SIZE;
+    pmm_bitmap = (uint64_t *)(MEMORY_BASE + VIRT_PHYS_BASE);
+    pmm_bitmap_len = mem_pages;
+    size_t bitmap_phys = (size_t)pmm_bitmap - VIRT_PHYS_BASE;
+    memset(pmm_bitmap, 0xFF, pmm_bitmap_len / 8);
+
+    for (size_t i = 0; i < mmap_len; i++) {
+        if (mmap[i].type == MultibootMemoryState::AVAILABLE) {
+            uintptr_t start = ROUND_UP(mmap[i].addr, PAGE_SIZE);
+            size_t len = ROUND_DOWN(mmap[i].len, PAGE_SIZE);
+            size_t count = len / PAGE_SIZE;
+            if (!len) continue;
+            if (start + len < MEMORY_BASE) continue;
+            if (start < MEMORY_BASE) {
+                len -= MEMORY_BASE - start;
+                start = MEMORY_BASE;
+                count = len / PAGE_SIZE;
+            }
+            if (OVERLAPS(bitmap_phys, pmm_bitmap_len / 8, start, len)) {
+                if (start < bitmap_phys)
+                    pmm_free((void *)start, (start - bitmap_phys) / PAGE_SIZE);
+
+                start = bitmap_phys + pmm_bitmap_len / 8;
+                len -= pmm_bitmap_len / 8;
+                count = len / PAGE_SIZE;
+            }
+
+            pmm_free((void *)start, count);
+        }
+    }
+
+    pmm_total_pages = pmm_free_pages;
+    bit_write(bitmap_phys / PAGE_SIZE, 1, (pmm_bitmap_len / 8 + PAGE_SIZE - 1) / PAGE_SIZE);
+    alloc((pmm_bitmap_len / 8 + PAGE_SIZE - 1) / PAGE_SIZE);
+}
+
+void *alloc(size_t count, size_t alignment, uintptr_t upper) {
+    size_t idx = MEMORY_BASE / PAGE_SIZE, max_idx = 0;
+
+    if (!upper)
+        max_idx = pmm_bitmap_len;
+    else
+        max_idx = pmm_bitmap_len < (upper / PAGE_SIZE) ? pmm_bitmap_len : (upper / PAGE_SIZE);
+
+    while (idx < max_idx) {
+        if (!bitmap_is_free(idx, count)) {
+            idx += alignment;
+            continue;
+        }
+        bit_write(idx, 1, count);
+        if (pmm_total_pages)
+            pmm_free_pages -= count;
+        return (void *)(idx * PAGE_SIZE);
+    }
+
+    return NULL;
+}
+
+void *alloc(size_t count) {
+    return alloc(count, 1, 0);
+}
+
+void pmm_free(void *mem, size_t count) {
+    size_t idx = (size_t)mem / PAGE_SIZE;
+    bit_write(idx, 0, count);
+    pmm_free_pages += count;
 }

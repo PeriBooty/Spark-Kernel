@@ -2,7 +2,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-void *memset(void *, int, size_t);
 size_t strlen(const char *);
 size_t strnlen(const char *);
 size_t strlen(const char16_t *);
