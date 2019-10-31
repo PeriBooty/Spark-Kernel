@@ -189,10 +189,7 @@ PageTable *new_address_space() {
 }
 
 PageTable **get_ctx_ptr() {
-    PageTable *ctx;
-    asm volatile("mov %0, %%cr3"
-                 : "=r"(*ctx->ents)::);
-    return &ctx;
+    return (PageTable **)get_current_context();
 }
 
 void save_context() {
@@ -273,21 +270,21 @@ void ctx_memcpy(PageTable *dst_ctx, void *dst_addr, PageTable *src_ctx, void *sr
 int to_flags(int flags) {
     return ((flags & MemoryFlags::WRITE) ? VirtualMemoryFlags::VMM_WRITE : 0) | ((flags & MemoryFlags::USER) ? VirtualMemoryFlags::VMM_USER : 0) | ((flags & MemoryFlags::NO_CACHE) ? (VirtualMemoryFlags::VMM_NO_CACHE | VirtualMemoryFlags::VMM_WT) : 0);
 }
-int mm_map_kernel(int cpu, void *dst, void *src, size_t size, int flags) {
+int mm_map_kernel(void *dst, void *src, size_t size, int flags) {
     return map_pages(kernel_pml4, dst, src, size, to_flags(flags));
 }
 
-int mm_unmap_kernel(int cpu, void *dst, size_t size) {
+int mm_unmap_kernel(void *dst, size_t size) {
     return unmap_pages(kernel_pml4, dst, size);
 }
 
-uintptr_t mm_get_phys_kernel(int cpu, void *dst) {
+uintptr_t mm_get_phys_kernel(void *dst) {
     return get_entry(kernel_pml4, dst) & ADDR_MASK;
 }
 
-int mm_get_flags_kernel(int cpu, void *dst) {
+int mm_get_flags_kernel(void *dst) {
     int arch_flags = get_entry(kernel_pml4, dst) & FLAG_MASK;
-    int flags = flags ? (MemoryFlags::READ | MemoryFlags::EXECUTE) : 0;
+    int flags = arch_flags ? (MemoryFlags::READ | MemoryFlags::EXECUTE) : 0;
     if (arch_flags & VirtualMemoryFlags::VMM_WRITE) flags |= MemoryFlags::WRITE;
     if (arch_flags & VirtualMemoryFlags::VMM_USER) flags |= MemoryFlags::USER;
     if (arch_flags & VirtualMemoryFlags::VMM_NO_CACHE) flags |= MemoryFlags::NO_CACHE;
@@ -295,7 +292,7 @@ int mm_get_flags_kernel(int cpu, void *dst) {
     return flags;
 }
 
-void *mm_get_ctx_kernel(int cpu) {
+void *mm_get_ctx_kernel() {
     return kernel_pml4;
 }
 
@@ -319,13 +316,13 @@ int mm_drop_context() {
     return 1;
 }
 
-int mm_update_context_all(int cpu) {
+int mm_update_context_all() {
     PageTable *ctx = get_current_context();
     set_context(ctx);
     return 1;
 }
 
-int mm_update_context_single(int cpu, void *dst) {
+int mm_update_context_single(void *dst) {
     update_mapping(dst);
     return 1;
 }

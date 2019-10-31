@@ -1,8 +1,6 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
-#define background = 0x00000000;
-#define foreground = 0xA8A8A8A8;
 
 struct VideoModeInfo {
     uint64_t *framebuffer;
@@ -18,8 +16,8 @@ private:
 
 public:
     static void init(VideoModeInfo &gfx_mode_info);
-    static void clear(uint16_t color);
-    static void write(const char c, uint16_t x, uint16_t y, uint16_t color);
-    static void write(const char* str, uint16_t x, uint16_t y, uint16_t color);
-    static void set_pixel(size_t fb_off, uint16_t color);
+    static void clear(uint32_t color);
+    static void write(const char c, uint16_t x, uint16_t y, uint32_t color);
+    static void write(const char* str, uint16_t x, uint16_t y, uint32_t color);
+    static void set_pixel(size_t fb_off, uint32_t color);
 };

@@ -19,7 +19,7 @@ void *malloc(size_t bytes) {
             spinlock_release(&mm_lock);
             return NULL;
         }
-        mm_map_kernel(-1, (void *)top, p, 1, MemoryFlags::READ | MemoryFlags::WRITE);
+        mm_map_kernel((void *)top, p, 1, MemoryFlags::READ | MemoryFlags::WRITE);
         top += PAGE_SIZE;
     }
 
@@ -68,8 +68,8 @@ int free(void *memory) {
 
     for (size_t i = 0; i < pages; i++) {
         void *curr = (void *)((uintptr_t)start + i * PAGE_SIZE);
-        void *p = (void *)mm_get_phys_kernel(-1, curr);
-        mm_unmap_kernel(-1, curr, 1);
+        void *p = (void *)mm_get_phys_kernel(curr);
+        mm_unmap_kernel(curr, 1);
         pmm_free(p, 1);
     }
     spinlock_release(&mm_lock);
