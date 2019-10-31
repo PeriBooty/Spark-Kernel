@@ -1,9 +1,6 @@
-#include <stddef.h>
-#include <stdint.h>
 #include <hardware/mm/mm.hpp>
 #include <hardware/mm/pmm.hpp>
 #include <lib/bit.hpp>
-#include <multiboot.hpp>
 #define ROUND_UP(N, S) ((((N) + (S)-1) / (S)) * (S))
 #define ROUND_DOWN(N, S) ((N / S) * S)
 #define OVERLAPS(a, as, b, bs) ((a) >= (b) && (a + as) <= (b + bs))

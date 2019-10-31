@@ -6,10 +6,9 @@ CXXFLAGS = -Wall -Wextra
 NASMPARAMS = -felf64 -F dwarf -g
 LDPARAMS = -melf_x86_64 -no-pie -nostdlib -Og
 OBJECTS = out/x86_64/boot.o out/x86_64/kernel.o out/x86_64/version.o \
-	out/x86_64/hardware/port.o out/x86_64/hardware/devices/display.o out/x86_64/lib/lib.o \
-	out/x86_64/hardware/devices/font.o out/x86_64/hardware/lock.o \
-	out/x86_64/hardware/mm/mm.o out/x86_64/hardware/mm/pmm.o out/x86_64/hardware/mm/vmm.o \
-	out/x86_64/lib/spinlock.o
+	out/x86_64/hardware/port.o out/x86_64/hardware/devices/vbe.o out/x86_64/lib/lib.o \
+	out/x86_64/hardware/lock.o out/x86_64/hardware/mm/mm.o out/x86_64/hardware/mm/pmm.o \
+	out/x86_64/hardware/mm/vmm.o out/x86_64/lib/spinlock.o
 
 all: clean pre iso
 

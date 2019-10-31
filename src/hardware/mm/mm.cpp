@@ -1,5 +1,3 @@
-#include <stddef.h>
-#include <stdint.h>
 #include <lib/lib.hpp>
 #include <lib/spinlock.hpp>
 #include <hardware/mm/mm.hpp>

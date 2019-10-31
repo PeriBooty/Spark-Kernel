@@ -1,5 +1,3 @@
-#include <stddef.h>
-#include <stdint.h>
 #include <hardware/mm/mm.hpp>
 #include <hardware/mm/pmm.hpp>
 #include <hardware/mm/vmm.hpp>

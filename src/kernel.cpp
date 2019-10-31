@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include <hardware/devices/display.hpp>
+#include <hardware/devices/vbe.hpp>
 #include <hardware/mm/mm.hpp>
 #include <hardware/mm/pmm.hpp>
 #include <hardware/mm/vmm.hpp>
@@ -11,11 +11,16 @@ extern "C" void kernel_main(void *mb_info_ptr) {
     pmm_init((MultibootMemoryMap *)(uint64_t)mb_info.mmap_addr, mb_info.mmap_length);
     vmm_init();
     uint64_t virtual_fb_addr = mb_info.framebuffer_addr + VIRT_PHYS_BASE;
-    if (map_pages(get_current_context(), (void*)virtual_fb_addr, (void*)mb_info.framebuffer_addr, 1, VirtualMemoryFlags::VMM_PRESENT | VirtualMemoryFlags::VMM_WRITE)) {
-        Display::init(virtual_fb_addr, mb_info.framebuffer_width, mb_info.framebuffer_height, mb_info.framebuffer_bpp);
-        //Display::write_line("OK THIS IS EPIC");
-    }
-    else
+    if (map_pages(get_current_context(), (void *)virtual_fb_addr, (void *)mb_info.framebuffer_addr, 1, VirtualMemoryFlags::VMM_PRESENT | VirtualMemoryFlags::VMM_WRITE)) {
+        VideoModeInfo mode_info = {
+            .framebuffer = (uint64_t *)virtual_fb_addr,
+            .pitch = mb_info.framebuffer_pitch,
+            .width = mb_info.framebuffer_width,
+            .height = mb_info.framebuffer_height,
+        };
+        Display::init(mode_info);
+        Display::write("OK THIS IS EPIC", mb_info.framebuffer_width - 50, mb_info.framebuffer_height - 50, 0xFF);
+    } else
         return;
     while (1)
         asm volatile("hlt");

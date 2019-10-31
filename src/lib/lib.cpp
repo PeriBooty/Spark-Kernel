@@ -27,10 +27,8 @@ char* itoa(int value, char* result, int base) {
         *result = '\0';
         return result;
     }
-
     char *ptr = result, *ptr1 = result, tmp_char;
     int tmp_value;
-
     do {
         tmp_value = value;
         value /= base;

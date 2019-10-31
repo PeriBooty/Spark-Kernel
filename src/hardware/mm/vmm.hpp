@@ -39,5 +39,5 @@ void restore_context();
 void drop_context();
 void set_context(PageTable *ctx);
 PageTable *get_current_context();
-int to_flags(int);
-void ctx_memcpy(PageTable *, void *, PageTable *, void *, size_t);
+int to_flags(int flags);
+void ctx_memcpy(PageTable *dst_ctx, void *dst_addr, PageTable *src_ctx, void *src_addr, size_t size);
