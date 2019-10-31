@@ -3,7 +3,7 @@
 #include <stddef.h>
 
 struct VideoModeInfo {
-    uint64_t *framebuffer;
+    uint32_t *framebuffer;
     uint32_t pitch;
     uint32_t width;
     uint32_t height;

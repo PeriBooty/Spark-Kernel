@@ -17,12 +17,12 @@ bool Display::handle_special_characters(const char c, uint16_t &x, uint16_t &y) 
     bool ret = false;
     switch (c) {
         case '\n': {
-            y++;
+            y += uni_vga_font.height;
             ret = true;
             break;
         }
         case '\t': {
-            x += 4;
+            x += 4 * uni_vga_font.width;
             ret = true;
             break;
         }
@@ -39,7 +39,7 @@ void Display::write(const char c, uint16_t x, uint16_t y, uint32_t color) {
     if (c == '\0') return;
     if (handle_special_characters(c, x, y)) return;
     size_t font_off = (size_t)c * uni_vga_font.height * uni_vga_font.width / 8;
-    size_t fb_off = ((x * uni_vga_font.width) * 4 + (y * uni_vga_font.height) * mode_info.pitch) / 4;
+    size_t fb_off = (x * 4 + y * mode_info.pitch) / 4;
     for (uint32_t ny = 0; ny < uni_vga_font.height; ny++) {
         size_t tmp_fb_off = fb_off;
         for (uint32_t nx = 0; nx < uni_vga_font.width; nx++) {
@@ -54,6 +54,7 @@ void Display::write(const char c, uint16_t x, uint16_t y, uint32_t color) {
 void Display::write(const char *str, uint16_t x, uint16_t y, uint32_t color) {
     uint32_t ln = strlen(str);
     for (uint32_t idx = 0; idx < ln; idx++) {
+        x += uni_vga_font.width;
         if (handle_special_characters(str[idx], x, y)) continue;
         write(str[idx], x, y, color);
     }
