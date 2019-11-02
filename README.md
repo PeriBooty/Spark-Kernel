@@ -14,4 +14,4 @@ The kernel.
 # Cross-Compiler
 ***You need a x86_64-elf cross-compiler to build this kernel, here's a guide on [how to get one](https://wiki.osdev.org/GCC_Cross-Compiler)**
 
-Run `make` where the Makefile is and an ISO will magically be made for you inside `out/x86/`.
+Run `make` where the Makefile is and an ISO will magically be made for you inside the `out` directory.
