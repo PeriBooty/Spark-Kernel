@@ -1,6 +1,7 @@
 #include <hardware/mm/mm.hpp>
 #include <hardware/mm/pmm.hpp>
 #include <hardware/mm/vmm.hpp>
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
 
 PageTableEntries virtual_to_entries(void *virt) {
     uintptr_t addr = (uintptr_t)virt;
@@ -241,7 +242,8 @@ void ctx_memcpy(PageTable *dst_ctx, void *dst_addr, PageTable *src_ctx, void *sr
     uintptr_t dst_virt = 0x700000000000;
     uintptr_t dst = (uintptr_t)dst_addr & (~0xFFF);
     uintptr_t src = (uintptr_t)src_addr & (~0xFFF);
-    for (size_t i = 0; i < size;
+    size_t map_size = size + MAX((uintptr_t)dst_addr & 0xFFF, (uintptr_t)src_addr & 0xFFF);
+    for (size_t i = 0; i < map_size;
          i += 0x1000, src_virt += 0x1000, src += 0x1000,
                 dst_virt += 0x1000, dst += 0x1000) {
         uintptr_t dst_phys = get_entry(dst_ctx, (void *)dst) & ADDR_MASK;

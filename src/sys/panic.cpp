@@ -1,5 +1,5 @@
 #include <hardware/devices/vbe.hpp>
-#include <hardware/cpu.hpp>
+#include <hardware/cpu/cpu.hpp>
 #include <sys/panic.hpp>
 
 void panic(const char *message) {

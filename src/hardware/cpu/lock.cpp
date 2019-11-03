@@ -1,4 +1,4 @@
-#include <hardware/lock.hpp>
+#include <hardware/cpu/lock.hpp>
 
 void cpu_atomic_loop_test_and_set(volatile int *var) {
     asm volatile(

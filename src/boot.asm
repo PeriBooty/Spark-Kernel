@@ -124,6 +124,50 @@ _loader:
 
 bits 64
 
+%macro pushf 0
+	push rax
+	push rbx
+	push rcx
+	push rdx
+	push rbp
+	push rsi
+	push rdi
+	push r8
+	push r9
+	push r10
+	push r11
+	push r12
+	push r13
+	push r14
+	push r15
+%endmacro
+
+%macro popf 0
+	pop r15
+	pop r14
+	pop r13
+	pop r12
+	pop r11
+	pop r10
+	pop r8
+	pop r9
+	pop rdi
+	pop rsi
+	pop rbp
+	pop rdx
+	pop rcx
+	pop rbx
+	pop rax
+%endmacro
+
+extern irq1_handler
+global irq1
+irq1:
+    pushf
+    call irq1_handler
+    popf
+    iretq
+
 higher_half_entry equ (_higher_half_entry - KERNEL_VMA)
 
 _higher_half_entry:
@@ -140,6 +184,7 @@ _entry:
     mov fs, ax
     add rsp, KERNEL_VMA
     pop rdi
+    pop rsi
     call kernel_main
     hlt
 
@@ -147,11 +192,8 @@ stop:
     hlt
 
 section .bss
-
-STACKSIZE equ 0x10000
-
 align 0x1000
 stack:
-    resb STACKSIZE
+    resb 0x10000
 
 stack_end:

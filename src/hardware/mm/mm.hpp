@@ -1,7 +1,6 @@
 #pragma once
 #include <stddef.h>
 #include <stdint.h>
-#include <multiboot.hpp>
 #define KERNEL_VMA 0xFFFF800000000000UL
 #define VIRT_PHYS_BASE 0xFFFF800000000000UL
 #define PAGE_SIZE 0x1000

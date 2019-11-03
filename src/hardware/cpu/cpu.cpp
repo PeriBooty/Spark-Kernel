@@ -1,4 +1,4 @@
-#include <hardware/cpu.hpp>
+#include <hardware/cpu/cpu.hpp>
 
 void cpu_halt_forever() {
     asm volatile(

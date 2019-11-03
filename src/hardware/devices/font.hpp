@@ -2057,7 +2057,7 @@ static const unsigned char __font_bitmap__[] = {
     0x00,
 };
 
-const BitmapFont uni_vga_font = {
+const BitmapFont display_font = {
     .width = 8,
     .height = 16,
     .bitmap = __font_bitmap__,

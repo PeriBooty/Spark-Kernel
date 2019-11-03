@@ -1,5 +1,5 @@
 #include <lib/spinlock.hpp>
-#include <hardware/lock.hpp>
+#include <hardware/cpu/lock.hpp>
 
 void spinlock_lock(Spinlock *lock) {
 	cpu_atomic_loop_test_and_set(&lock->locked);
