@@ -3,7 +3,7 @@
 #include <sys/panic.hpp>
 
 void panic(const char *message) {
-    Display::clear(0x3C59FF);
+    Display::clear(0x0000FF);
     Display::write(":( Sorry, an error has occured.", 0, 16, 0xFFFFFF);
     Display::write("The OS has stopped to prevent damage to your PC.", 0, 32, 0xFFFFFF);
     Display::write("Error code:", 0, 64, 0xFFFFFF);
