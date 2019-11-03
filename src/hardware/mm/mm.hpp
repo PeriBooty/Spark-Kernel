@@ -19,7 +19,7 @@ void *malloc(size_t blocks);
 void *calloc(size_t blocks);
 int free(void *memory);
 void *memset(void *s, int c, size_t n);
-void *memcpy (void *dest, const void *src, size_t len);
+void *memcpy(void *dest, const void *src, size_t len);
 int mm_map_kernel(void *dst, void *src, size_t size, int flags);
 int mm_unmap_kernel(void *dst, size_t size);
 uintptr_t mm_get_phys_kernel(void *dst);

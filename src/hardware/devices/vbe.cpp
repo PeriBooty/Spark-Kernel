@@ -12,8 +12,8 @@ void Display::init(VideoModeInfo &gfx_mode_info) {
 }
 
 void Display::clear(uint32_t color) {
-    if(!is_working) return;
-    for(size_t i = 0; i < (mode_info.width * mode_info.pitch) / 4; i++)
+    if (!is_working) return;
+    for (size_t i = 0; i < (mode_info.width * mode_info.pitch) / 4; i++)
         set_pixel(i, color);
 }
 
@@ -56,7 +56,7 @@ void Display::write(const char c, uint16_t x, uint16_t y, uint32_t color) {
 }
 
 void Display::write(const char *str, uint16_t x, uint16_t y, uint32_t color) {
-    if(!is_working) return;
+    if (!is_working) return;
     uint32_t ln = strlen(str);
     for (uint32_t idx = 0; idx < ln; idx++) {
         x += display_font.width;
@@ -66,11 +66,11 @@ void Display::write(const char *str, uint16_t x, uint16_t y, uint32_t color) {
 }
 
 void Display::set_pixel(size_t fb_off, uint32_t color) {
-    if(!is_working) return;
+    if (!is_working) return;
     mode_info.framebuffer[fb_off] = color;
 }
 
 void Display::set_pixel(uint16_t x, uint16_t y, uint32_t color) {
-    if(!is_working) return;
+    if (!is_working) return;
     mode_info.framebuffer[(x * 4 + y * mode_info.pitch) / 4] = color;
 }

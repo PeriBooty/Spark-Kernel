@@ -1,7 +1,7 @@
-#include <lib/lib.hpp>
-#include <lib/spinlock.hpp>
 #include <hardware/mm/mm.hpp>
 #include <hardware/mm/pmm.hpp>
+#include <lib/lib.hpp>
+#include <lib/spinlock.hpp>
 
 static Spinlock mm_lock = { 0 };
 static uintptr_t top = MEMORY_BASE;
