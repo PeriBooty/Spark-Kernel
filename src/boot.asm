@@ -124,7 +124,7 @@ _loader:
 
 bits 64
 
-%macro pushf 0
+%macro pushfregs 0
 	push rax
 	push rbx
 	push rcx
@@ -140,9 +140,22 @@ bits 64
 	push r13
 	push r14
 	push r15
+    xor rax, rax
+    mov ax, ds
+    push rax
+    mov ax, 0x0
+    mov ds, ax
+    mov es, ax
+
+    cld
+    mov rdi, rsp
 %endmacro
 
-%macro popf 0
+%macro popfregs 0
+    pop rax
+    mov ds, ax
+    mov es, ax
+
 	pop r15
 	pop r14
 	pop r13
@@ -158,15 +171,26 @@ bits 64
 	pop rcx
 	pop rbx
 	pop rax
+    
+    add rsp, 16
 %endmacro
 
 extern irq1_handler
 global irq1
 irq1:
-    pushf
+    pushfregs
     call irq1_handler
-    popf
+    pushfregs
     iretq
+
+extern pit_handler
+global irq0
+irq0:
+    pushfregs
+    call pit_handler
+    pushfregs
+    iretq
+    
 
 higher_half_entry equ (_higher_half_entry - KERNEL_VMA)
 

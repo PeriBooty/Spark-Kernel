@@ -26,7 +26,6 @@ extern "C" void kernel_main(void *mb_info_ptr, uint32_t multiboot_magic) {
             Display::write("OK THIS IS EPIC,", mb_info.framebuffer_width / 2 - 16 * 8, mb_info.framebuffer_height - 100 - 16, 0xFFFFFF);
             Display::write("I think...", mb_info.framebuffer_width / 2 - 10 * 8, mb_info.framebuffer_height - 100, 0xFFFFFF);
             idt_init();
-            panic("Uh oh stinky");
         } else
             return;  // Not enough memory (Out of bounds?)
     } else

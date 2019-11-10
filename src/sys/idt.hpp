@@ -20,5 +20,7 @@ void idt_set_gate(uint8_t vec, uintptr_t function, uint16_t selector, uint8_t fl
 void irq_eoi(uint8_t irq);
 void mask_irq(uint8_t irq);
 void unmask_irq(uint8_t irq);
+void init_pit(uint32_t frequency);
 
+extern "C" void irq0();
 extern "C" void irq1();

@@ -5,13 +5,13 @@
 #define ADDR_MASK ~(FLAG_MASK)
 
 enum VirtualMemoryFlags {
-    VMM_PRESENT = (1 << 0),
-    VMM_WRITE = (1 << 1),
-    VMM_USER = (1 << 2),
-    VMM_WT = (1 << 3),
-    VMM_NO_CACHE = (1 << 4),
-    VMM_DIRTY = (1 << 5),
-    VMM_LARGE = (1 << 7),
+    VMM_PRESENT = 1 << 0,
+    VMM_WRITE = 1 << 1,
+    VMM_USER = 1 << 2,
+    VMM_WT = 1 << 3,
+    VMM_NO_CACHE = 1 << 4,
+    VMM_DIRTY = 1 << 5,
+    VMM_LARGE = 1 << 7,
 };
 
 struct PageTable {
