@@ -9,7 +9,7 @@ static uintptr_t top = memory_base;
 
 
 /// Allocates physical memory
-void *malloc(size_t bytes) {
+void *mm_alloc(size_t bytes) {
     spinlock_lock(&mm_lock);
     bytes = ((bytes + 7) / 8) * 8;
     bytes += 16;
@@ -17,7 +17,7 @@ void *malloc(size_t bytes) {
     void *out = (void *)top;
 
     for (size_t i = 0; i < pages; i++) {
-        void *p = malloc(1);
+        void *p = mm_alloc(1);
         if (!p) {
             spinlock_release(&mm_lock);
             return NULL;
@@ -39,28 +39,28 @@ void *malloc(size_t bytes) {
 }
 
 /// Safely allocates memory by zeroing it
-void *calloc(size_t bytes, size_t elem) {
-    void *out = malloc(bytes * elem);
+void *mm_calloc(size_t bytes, size_t elem) {
+    void *out = mm_alloc(bytes * elem);
     memset(out, 0, bytes * elem);
     return out;
 }
 
 /// Reallocates memory
-void *realloc(void *old, size_t s) {
-    void *newm = malloc(s);
+void *mm_realloc(void *old, size_t s) {
+    void *newm = mm_alloc(s);
     if (old) {
         spinlock_lock(&mm_lock);
         uint64_t size = *(uint64_t *)((uintptr_t)old - 16);
         spinlock_release(&mm_lock);
         memcpy(newm, old, size);
-        free(old);
+        mm_free(old);
     }
     return newm;
 }
 
 
 /// Frees memory
-int free(void *memory) {
+int mm_free(void *memory) {
     spinlock_lock(&mm_lock);
     size_t size = *(uint64_t *)((uintptr_t)memory - 16);
     size_t req_pages = *(uint64_t *)((uintptr_t)memory - 8);
