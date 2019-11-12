@@ -125,54 +125,55 @@ _loader:
 bits 64
 
 %macro pushfregs 0
-	push rax
-	push rbx
-	push rcx
-	push rdx
-	push rbp
-	push rsi
-	push rdi
-	push r8
-	push r9
-	push r10
-	push r11
-	push r12
-	push r13
-	push r14
-	push r15
-    xor rax, rax
-    mov ax, ds
+    ; cli , not required since this is an interrupt gate and not a trap gate but it'll show that it's there implicitly
     push rax
+    push rbx
+    push rcx
+    push rdx
+    push rbp
+    push rsi
+    push rdi
+    push r8
+    push r9
+    push r10
+    push r11
+    push r12
+    push r13
+    push r14
+    push r15
+ 
+    mov ax, ds
+    movzx rax, ax
+    push rax
+ 
     mov ax, 0x0
     mov ds, ax
     mov es, ax
-
+   
     cld
     mov rdi, rsp
 %endmacro
-
+ 
 %macro popfregs 0
     pop rax
     mov ds, ax
     mov es, ax
-
-	pop r15
-	pop r14
-	pop r13
-	pop r12
-	pop r11
-	pop r10
-	pop r8
-	pop r9
-	pop rdi
-	pop rsi
-	pop rbp
-	pop rdx
-	pop rcx
-	pop rbx
-	pop rax
-    
-    add rsp, 16
+ 
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rdx
+    pop rcx
+    pop rbx
+    pop rax
 %endmacro
 
 extern irq1_handler
@@ -180,7 +181,7 @@ global irq1
 irq1:
     pushfregs
     call irq1_handler
-    pushfregs
+    popfregs
     iretq
 
 extern pit_handler
@@ -188,7 +189,7 @@ global irq0
 irq0:
     pushfregs
     call pit_handler
-    pushfregs
+    popfregs
     iretq
     
 

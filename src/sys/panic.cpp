@@ -2,7 +2,7 @@
 #include <hardware/cpu/cpu.hpp>
 #include <sys/panic.hpp>
 
-void panic(const char *message) {
+void kernel_panic(const char *message) {
     Display::clear(0x0000FF);
     Display::write(":( Sorry, an error has occured.", 0, 16, 0xFFFFFF);
     Display::write("The OS has stopped to prevent damage to your PC.", 0, 32, 0xFFFFFF);

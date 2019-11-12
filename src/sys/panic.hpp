@@ -1,3 +1,3 @@
 #pragma once
 
-void panic(const char *message);
+void kernel_panic(const char *message);

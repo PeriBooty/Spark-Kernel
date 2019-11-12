@@ -27,10 +27,10 @@ struct PageTableEntries {
 
 PageTableEntries virtual_to_entries(void *virt);
 void *entries_to_virtual(PageTableEntries entries);
-void vmm_init();
-int map_pages(PageTable *pml4, void *virt, void *phys, size_t count, int perms);
+void vmm_init(bool is_pat_supported);
+int vmm_map_pages(PageTable *pml4, void *virt, void *phys, size_t count, int perms);
 int unmap_pages(PageTable *pml4, void *virt, size_t count);
-int update_perms(PageTable *pml4, void *virt, size_t count, int perms);
+int vmm_update_perms(PageTable *pml4, void *virt, size_t count, int perms);
 uintptr_t get_entry(PageTable *pml4, void *virt);
 PageTable *new_address_space();
 void save_context();
@@ -38,6 +38,6 @@ PageTable *get_saved_context();
 void restore_context();
 void drop_context();
 void set_context(PageTable *ctx);
-PageTable *get_current_context();
+PageTable *vmm_get_current_context();
 int to_flags(int flags);
 void ctx_memcpy(PageTable *dst_ctx, void *dst_addr, PageTable *src_ctx, void *src_addr, size_t size);

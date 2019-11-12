@@ -20,17 +20,17 @@ void idt_init() {
     Port::wait();
     Port::outb(0xA1, 2);
     Port::wait();
-    Port::outb(0x21, 0x01);
-    Port::wait();
-    Port::outb(0xA1, 0x01);
-    Port::wait();
-    Port::outb(0xa1, 0xff);
     Port::outb(0x21, 0xff);
+    Port::wait();
+    Port::outb(0xA1, 0xff);
+    Port::wait();
+    Port::outb(0xa1, 0);
+    Port::outb(0x21, 0);
     unmask_irq(0);
     unmask_irq(1);
     idt_set_gate(32, (uintptr_t)irq0, 0x08, 0x8E);
     idt_set_gate(33, (uintptr_t)irq1, 0x08, 0x8E);
-    init_pit(10000);
+    init_pit(100000000);
     idt_ptr.limit = 256 * sizeof(IdtEntry) - 1;
     idt_ptr.base = (uint64_t)&idt;
     asm volatile("lidt %0" ::"m"(idt_ptr));
@@ -62,26 +62,26 @@ extern "C" void pit_handler() {
     ticks++;
     Display::clear(0x000000);
     Display::write("[PIT] Ticked", 0, 0, 0xFFFFFF);
-    char* ticks_str = (char*)"";
+    char ticks_str[50] = {};
     itoa(ticks, ticks_str, 10);
     Display::write(ticks_str, 13 * 8, 0, 0xFFFFFF);
-    Display::write(" times.", strlen(ticks_str) * 8, 0, 0xFFFFFF);
+    Display::write("times.", 14 * 8 + strlen(ticks_str) * 8, 0, 0xFFFFFF);
     irq_eoi(0);
 }
 
 void mask_irq(uint8_t irq) {
-    uint16_t port = 0xA1;
+    uint16_t port = 0x21;
     if (irq >= 8) {
-        port = 0x21;
+        port = 0xA1;
         irq -= 8;
     }
     Port::outb(port, Port::inb(port) | (1 << irq));
 }
 
 void unmask_irq(uint8_t irq) {
-    uint16_t port = 0xA1;
+    uint16_t port = 0x21;
     if (irq >= 8) {
-        port = 0x21;
+        port = 0xA1;
         irq -= 8;
     }
     Port::outb(port, Port::inb(port) & ~(1 << irq));

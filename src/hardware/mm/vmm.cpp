@@ -1,16 +1,17 @@
 #include <hardware/mm/mm.hpp>
 #include <hardware/mm/pmm.hpp>
 #include <hardware/mm/vmm.hpp>
+#include <hardware/cpu/cpu.hpp>
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 
 PageTableEntries virtual_to_entries(void *virt) {
     uintptr_t addr = (uintptr_t)virt;
 
     PageTableEntries off = {
-        .pml4 = (addr & ((size_t)0x1ff << 39)) >> 39,
-        .pdp = (addr & ((size_t)0x1ff << 30)) >> 30,
-        .pd = (addr & ((size_t)0x1ff << 21)) >> 21,
-        .pt = (addr & ((size_t)0x1ff << 12)) >> 12,
+        .pml4 = (addr >> 39) & 0x1ff,
+        .pdp = (addr >> 30) & 0x1ff,
+        .pd = (addr >> 21) & 0x1ff,
+        .pt = (addr >> 12) & 0x1ff,
     };
 
     return off;
@@ -30,9 +31,11 @@ void *entries_to_virtual(PageTableEntries offs) {
 // TODO: multicore?
 static PageTable *kernel_pml4;
 
-void vmm_init() {
+void vmm_init(bool is_pat_supported) {
     kernel_pml4 = new_address_space();
     set_context(kernel_pml4);
+    if (is_pat_supported)
+        cpu_set_msr(0x277, 0x00'00'01'00'00'00'04'06);
 }
 
 static inline PageTable *get_or_alloc_ent(PageTable *tab, size_t off, int flags) {
@@ -58,7 +61,7 @@ static inline PageTable *get_or_null_ent(PageTable *tab, size_t off) {
     return (PageTable *)(ent_addr + VIRT_PHYS_BASE);
 }
 
-int map_pages(PageTable *pml4, void *virt, void *phys, size_t count, int perms) {
+int vmm_map_pages(PageTable *pml4, void *virt, void *phys, size_t count, int perms) {
     while (count--) {
         PageTableEntries offs = virtual_to_entries(virt);
 
@@ -94,7 +97,7 @@ int unmap_pages(PageTable *pml4, void *virt, size_t count) {
     return 1;
 }
 
-int update_perms(PageTable *pml4, void *virt, size_t count, int perms) {
+int vmm_update_perms(PageTable *pml4, void *virt, size_t count, int perms) {
     while (count--) {
         PageTableEntries offs = virtual_to_entries(virt);
 
@@ -190,12 +193,12 @@ PageTable *new_address_space() {
 }
 
 PageTable **get_ctx_ptr() {
-    return (PageTable **)get_current_context();
+    return (PageTable **)vmm_get_current_context();
 }
 
 void save_context() {
     PageTable **ctx = get_ctx_ptr();
-    *ctx = get_current_context();
+    *ctx = vmm_get_current_context();
 }
 
 PageTable *get_saved_context() {
@@ -221,7 +224,7 @@ void set_context(PageTable *ctx) {
                  : "memory");
 }
 
-PageTable *get_current_context() {
+PageTable *vmm_get_current_context() {
     uintptr_t ctx = 0;
     asm volatile("mov %%cr3, %%rax"
                  : "=a"(ctx)
@@ -249,8 +252,8 @@ void ctx_memcpy(PageTable *dst_ctx, void *dst_addr, PageTable *src_ctx, void *sr
         uintptr_t dst_phys = get_entry(dst_ctx, (void *)dst) & ADDR_MASK;
         uintptr_t src_phys = get_entry(src_ctx, (void *)src) & ADDR_MASK;
 
-        map_pages(kernel_pml4, (void *)dst_virt, (void *)dst_phys, 1, VirtualMemoryFlags::VMM_WRITE);
-        map_pages(kernel_pml4, (void *)src_virt, (void *)src_phys, 1, VirtualMemoryFlags::VMM_WRITE);
+        vmm_map_pages(kernel_pml4, (void *)dst_virt, (void *)dst_phys, 1, VirtualMemoryFlags::VMM_WRITE);
+        vmm_map_pages(kernel_pml4, (void *)src_virt, (void *)src_phys, 1, VirtualMemoryFlags::VMM_WRITE);
         update_mapping((void *)dst_virt);
         update_mapping((void *)src_virt);
     }
@@ -273,7 +276,7 @@ int to_flags(int flags) {
     return ((flags & MemoryFlags::WRITE) ? VirtualMemoryFlags::VMM_WRITE : 0) | ((flags & MemoryFlags::USER) ? VirtualMemoryFlags::VMM_USER : 0) | ((flags & MemoryFlags::NO_CACHE) ? (VirtualMemoryFlags::VMM_NO_CACHE | VirtualMemoryFlags::VMM_WT) : 0);
 }
 int mm_map_kernel(void *dst, void *src, size_t size, int flags) {
-    return map_pages(kernel_pml4, dst, src, size, to_flags(flags));
+    return vmm_map_pages(kernel_pml4, dst, src, size, to_flags(flags));
 }
 
 int mm_unmap_kernel(void *dst, size_t size) {
@@ -319,7 +322,7 @@ int mm_drop_context() {
 }
 
 int mm_update_context_all() {
-    PageTable *ctx = get_current_context();
+    PageTable *ctx = vmm_get_current_context();
     set_context(ctx);
     return 1;
 }

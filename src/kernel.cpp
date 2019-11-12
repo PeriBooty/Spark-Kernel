@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <hardware/cpu/cpu.hpp>
 #include <hardware/devices/vbe.hpp>
 #include <hardware/mm/mm.hpp>
 #include <hardware/mm/pmm.hpp>
@@ -12,9 +13,10 @@ extern "C" void kernel_main(void *mb_info_ptr, uint32_t multiboot_magic) {
         MultibootInfo &mb_info = *(MultibootInfo *)((uint64_t)mb_info_ptr + VIRT_PHYS_BASE);
         MultibootMemoryMap *memory_map = (MultibootMemoryMap *)(uint64_t)mb_info.mmap_addr;
         pmm_init(memory_map, mb_info.mmap_length / sizeof(*memory_map));
-        vmm_init();
+        bool pat_supported = cpu_check_pat();
+        vmm_init(pat_supported);
         uint64_t virtual_fb_addr = mb_info.framebuffer_addr + VIRT_PHYS_BASE;
-        if (map_pages(get_current_context(), (void *)virtual_fb_addr, (void *)mb_info.framebuffer_addr, (mb_info.framebuffer_width * mb_info.framebuffer_pitch + PAGE_SIZE - 1) / PAGE_SIZE, VirtualMemoryFlags::VMM_PRESENT | VirtualMemoryFlags::VMM_WRITE | MemoryFlags::READ)) {
+        if (vmm_map_pages(vmm_get_current_context(), (void *)virtual_fb_addr, (void *)mb_info.framebuffer_addr, (mb_info.framebuffer_width * mb_info.framebuffer_pitch + PAGE_SIZE - 1) / PAGE_SIZE, VirtualMemoryFlags::VMM_WRITE | MemoryFlags::READ)) {
             VideoModeInfo mode_info = {
                 .framebuffer = (uint32_t *)virtual_fb_addr,
                 .pitch = mb_info.framebuffer_pitch,
@@ -22,6 +24,9 @@ extern "C" void kernel_main(void *mb_info_ptr, uint32_t multiboot_magic) {
                 .height = mb_info.framebuffer_height,
             };
             Display::init(mode_info);
+            if (!pat_supported)
+                kernel_panic("PAT is not supported on this processor.");
+            vmm_update_perms(vmm_get_current_context(), (void *)virtual_fb_addr, (mb_info.framebuffer_width * mb_info.framebuffer_pitch + PAGE_SIZE - 1) / PAGE_SIZE, VirtualMemoryFlags::VMM_WRITE | MemoryFlags::READ | VirtualMemoryFlags::VMM_LARGE | VirtualMemoryFlags::VMM_WT);
             Display::clear(0x000000);
             Display::write("OK THIS IS EPIC,", mb_info.framebuffer_width / 2 - 16 * 8, mb_info.framebuffer_height - 100 - 16, 0xFFFFFF);
             Display::write("I think...", mb_info.framebuffer_width / 2 - 10 * 8, mb_info.framebuffer_height - 100, 0xFFFFFF);
