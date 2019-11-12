@@ -1,12 +1,13 @@
 #pragma once
 #include <stddef.h>
 #include <stdint.h>
-#define KERNEL_VMA 0xFFFF800000000000UL
-#define VIRT_PHYS_BASE 0xFFFF800000000000UL
-#define PAGE_SIZE 0x1000
-#define MEMORY_BASE 0x2000000
-#define HEAP_BASE 0x200000000
+constexpr inline size_t virtual_kernel_base = 0xFFFF800000000000UL;
+constexpr inline size_t virtual_physical_base = 0xFFFF800000000000UL;
+constexpr inline size_t page_size = 0x1000;
+constexpr inline size_t memory_base = 0x2000000;
+constexpr inline size_t heap_base = 0x200000000;
 
+/// Memory flags
 enum MemoryFlags {
     READ = 0x01,
     WRITE = 0x02,
@@ -15,12 +16,17 @@ enum MemoryFlags {
     NO_CACHE = 0x10,
 };
 
+/// Allocates physical memory
 void *malloc(size_t blocks);
+
+/// Safely allocates memory by zeroing it
 void *calloc(size_t blocks);
+
+/// Frees memory
 int free(void *memory);
+
+/// Fills memory with something
 void *memset(void *s, int c, size_t n);
+
+/// Copies memory
 void *memcpy(void *dest, const void *src, size_t len);
-int mm_map_kernel(void *dst, void *src, size_t size, int flags);
-int mm_unmap_kernel(void *dst, size_t size);
-uintptr_t mm_get_phys_kernel(void *dst);
-int mm_get_flags_kernel(void *dst);

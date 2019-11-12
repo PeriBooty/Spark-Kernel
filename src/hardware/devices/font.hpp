@@ -1,11 +1,13 @@
 #pragma once
 
+/// Bitmap font struct
 struct BitmapFont {
     unsigned char width;
     unsigned char height;
     const unsigned char *bitmap;
 };
 
+/// The kernel font bitmap
 static const unsigned char __font_bitmap__[] = {
     0x00,
     0x00,
@@ -2057,6 +2059,7 @@ static const unsigned char __font_bitmap__[] = {
     0x00,
 };
 
+/// The kernel text font
 const BitmapFont display_font = {
     .width = 8,
     .height = 16,

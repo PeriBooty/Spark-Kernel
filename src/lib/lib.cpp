@@ -1,5 +1,6 @@
 #include <lib/lib.hpp>
 
+/// Get length of string
 size_t strlen(const char* chr) {
     size_t size = 0;
     while (*chr++)
@@ -7,10 +8,7 @@ size_t strlen(const char* chr) {
     return size;
 }
 
-size_t strnlen(const char* chr) {
-    return strlen(chr) + 1;
-}
-
+/// Get length of string
 size_t strlen(const char16_t* chr) {
     size_t size = 0;
     while (*chr++)
@@ -18,10 +16,23 @@ size_t strlen(const char16_t* chr) {
     return size;
 }
 
-size_t strnlen(const char16_t* chr) {
-    return strlen(chr) + 1;
+/// Get length of string until max length
+size_t strnlen(const char* chr, size_t max_len) {
+    size_t size = 0;
+    for (; (size < max_len) && chr[size]; ++size)
+        ;
+    return size;
 }
 
+/// Get length of string until max length
+size_t strnlen(const char16_t* chr, size_t max_len) {
+    size_t size = 0;
+    for (; (size < max_len) && chr[size]; ++size)
+        ;
+    return size;
+}
+
+/// Converts an integer to a string
 char* itoa(int value, char* result, int base) {
     if (base < 2 || base > 36) {
         *result = '\0';

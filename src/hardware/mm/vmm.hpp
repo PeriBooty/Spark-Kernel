@@ -1,9 +1,10 @@
 #pragma once
 #include <stddef.h>
 #include <stdint.h>
-#define FLAG_MASK 0xFFF
-#define ADDR_MASK ~(FLAG_MASK)
+constexpr inline size_t flag_mask = 0xFFF;
+constexpr inline size_t address_mask = ~(flag_mask);
 
+/// The virtual memory flags
 enum VirtualMemoryFlags {
     VMM_PRESENT = 1 << 0,
     VMM_WRITE = 1 << 1,
@@ -14,10 +15,12 @@ enum VirtualMemoryFlags {
     VMM_LARGE = 1 << 7,
 };
 
+/// The page table struct
 struct PageTable {
     uint64_t ents[512];
 };
 
+/// The page table entries struct
 struct PageTableEntries {
     size_t pml4;
     size_t pdp;
@@ -25,19 +28,62 @@ struct PageTableEntries {
     size_t pt;
 };
 
+/// Converts virtual address to page table entries
 PageTableEntries virtual_to_entries(void *virt);
+
+/// Converts page table entries to a virtual address
 void *entries_to_virtual(PageTableEntries entries);
+
+/// Initializes 4-level paging
 void vmm_init(bool is_pat_supported);
-int vmm_map_pages(PageTable *pml4, void *virt, void *phys, size_t count, int perms);
-int unmap_pages(PageTable *pml4, void *virt, size_t count);
-int vmm_update_perms(PageTable *pml4, void *virt, size_t count, int perms);
-uintptr_t get_entry(PageTable *pml4, void *virt);
+
+/// Maps a virtual address
+bool map_pages(PageTable *pml4, void *virt, void *phys, size_t count, int perms);
+
+/// Unmaps a virtual address
+bool vmm_unmap_pages(PageTable *pml4, void *virt, size_t count);
+
+/// Updates a virtual address' permissions
+bool vmm_update_perms(PageTable *pml4, void *virt, size_t count, int perms);
+
+/// Gets physical address
+uintptr_t vmm_get_entry(PageTable *pml4, void *virt);
+
+/// Creates a new address space
 PageTable *new_address_space();
-void save_context();
-PageTable *get_saved_context();
-void restore_context();
-void drop_context();
-void set_context(PageTable *ctx);
+
+/// Saves the current context
+void vmm_save_context();
+
+/// Gives the saved context's pointer
+PageTable **vmm_get_ctx_ptr();
+
+/// Restores the context
+void vmm_restore_context();
+
+/// Drops the context
+void vmm_drop_context();
+
+/// Sets the context
+void vmm_set_context(PageTable *ctx);
+
+/// Gives the current context
 PageTable *vmm_get_current_context();
-int to_flags(int flags);
-void ctx_memcpy(PageTable *dst_ctx, void *dst_addr, PageTable *src_ctx, void *src_addr, size_t size);
+
+/// Converts flags int to flags
+int vmm_to_flags(int flags);
+
+/// Copies the context
+void vmm_ctx_memcpy(PageTable *dst_ctx, void *dst_addr, PageTable *src_ctx, void *src_addr, size_t size);
+
+/// Maps kernel memory
+bool mm_map_kernel(void *dst, void *src, size_t size, int flags);
+
+/// Unmaps kernel memory
+bool mm_unmap_kernel(void *dst, size_t size);
+
+/// Gets kernel physical memory
+uintptr_t mm_get_phys_kernel(void *dst);
+
+/// Gets flags from kernel memory
+int mm_get_flags_kernel(void *dst);
