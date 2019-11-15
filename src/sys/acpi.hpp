@@ -101,3 +101,5 @@ struct Fadt {
 };
 
 void init_acpi();
+inline AcpiSdtHeader *rsdt_search(const char* signature);
+inline RsdpDescriptor *find_rsdp();
