@@ -41,7 +41,7 @@ void vmm_init(bool is_pat_supported);
 bool map_pages(PageTable *pml4, void *virt, void *phys, size_t count, int perms);
 
 /// Unmaps a virtual address
-bool vmm_unmap_pages(PageTable *pml4, void *virt, size_t count);
+bool unmap_pages(PageTable *pml4, void *virt, size_t count);
 
 /// Updates a virtual address' permissions
 bool vmm_update_perms(PageTable *pml4, void *virt, size_t count, int perms);
@@ -70,20 +70,7 @@ void vmm_set_context(PageTable *ctx);
 /// Gives the current context
 PageTable *vmm_get_current_context();
 
-/// Converts flags int to flags
 int vmm_to_flags(int flags);
 
 /// Copies the context
 void vmm_ctx_memcpy(PageTable *dst_ctx, void *dst_addr, PageTable *src_ctx, void *src_addr, size_t size);
-
-/// Maps kernel memory
-bool mm_map_kernel(void *dst, void *src, size_t size, int flags);
-
-/// Unmaps kernel memory
-bool mm_unmap_kernel(void *dst, size_t size);
-
-/// Gets kernel physical memory
-uintptr_t mm_get_phys_kernel(void *dst);
-
-/// Gets flags from kernel memory
-int mm_get_flags_kernel(void *dst);

@@ -10,5 +10,5 @@ void kernel_panic(const char *message) {
     Display::write("The OS has stopped to prevent damage to your PC.", 0, 32, 0xFFFFFF);
     Display::write("Error message:", 0, 64, 0xFFFFFF);
     Display::write(message, 12 * 8, 64, 0xFFFFFF);
-    cpu_halt_forever();  // halt the cpu forever
+    cpu_halt_forever();  // Halt the cpu forever
 }

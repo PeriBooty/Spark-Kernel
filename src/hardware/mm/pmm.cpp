@@ -50,9 +50,9 @@ static uintptr_t pmm_find_available_memory_top(MultibootMemoryMap *mmap, size_t 
 void pmm_init(MultibootMemoryMap *mmap, size_t mmap_len) {
     uintptr_t mem_top = pmm_find_available_memory_top(mmap, mmap_len);
     uint32_t mem_pages = (mem_top + page_size - 1) / page_size;
-    pmm_bitmap = (uint64_t *)(memory_base + virtual_physical_base);
+    pmm_bitmap = reinterpret_cast<uint64_t *>(memory_base + virtual_physical_base);
     pmm_bitmap_len = mem_pages;
-    size_t bitmap_phys = (size_t)pmm_bitmap - virtual_physical_base;
+    size_t bitmap_phys = reinterpret_cast<size_t>(pmm_bitmap) - virtual_physical_base;
     memset(pmm_bitmap, 0xFF, pmm_bitmap_len / 8);
 
     for (size_t i = 0; i < mmap_len; i++) {
@@ -69,14 +69,14 @@ void pmm_init(MultibootMemoryMap *mmap, size_t mmap_len) {
             }
             if (Math::overlaps(bitmap_phys, pmm_bitmap_len / 8, start, len)) {
                 if (start < bitmap_phys)
-                    pmm_free((void *)start, (start - bitmap_phys) / page_size);
+                    pmm_free(reinterpret_cast<void *>(start), (start - bitmap_phys) / page_size);
 
                 start = bitmap_phys + pmm_bitmap_len / 8;
                 len -= pmm_bitmap_len / 8;
                 count = len / page_size;
             }
 
-            pmm_free((void *)start, count);
+            pmm_free(reinterpret_cast<void *>(start), count);
         }
     }
 
@@ -102,7 +102,7 @@ void *pmm_alloc(size_t count, size_t alignment, uintptr_t upper) {
         pmm_bit_write(idx, 1, count);
         if (pmm_total_pages)
             pmm_free_pages -= count;
-        return (void *)(idx * page_size);
+        return reinterpret_cast<void *>(idx * page_size);
     }
 
     return NULL;
@@ -115,7 +115,7 @@ void *pmm_alloc(size_t count) {
 
 /// Frees memory
 void pmm_free(void *mem, size_t count) {
-    size_t idx = (size_t)mem / page_size;
+    size_t idx = reinterpret_cast<size_t>(mem) / page_size;
     pmm_bit_write(idx, 0, count);
     pmm_free_pages += count;
 }

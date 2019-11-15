@@ -25,8 +25,8 @@ void cpu_halt_forever() {
 
 // Sets MSR
 void cpu_set_msr(uint32_t msr, uint64_t value) {
-    uint32_t low = (uint32_t)value;
-    uint32_t high = (uint32_t)(value >> 32);
+    uint32_t low = static_cast<uint32_t>(value);
+    uint32_t high = static_cast<uint32_t>(value >> 32);
     asm volatile("wrmsr"
                  :
                  : "a"(low), "d"(high), "c"(msr));

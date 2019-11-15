@@ -1,12 +1,10 @@
 #pragma once
 
 /// Spinlock struct
-struct Spinlock {
+class Spinlock {
+private:
     volatile int locked;
+public:
+    void lock();
+    void release();
 };
-
-/// Locks a spinlock
-void spinlock_lock(Spinlock *lock);
-
-/// Releases a spinlock
-void spinlock_release(Spinlock *lock);

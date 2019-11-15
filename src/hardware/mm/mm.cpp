@@ -4,67 +4,67 @@
 #include <lib/lib.hpp>
 #include <lib/spinlock.hpp>
 
-static Spinlock mm_lock = { 0 };
+static Spinlock mm_lock{};
 static uintptr_t top = memory_base;
 
 
 /// Allocates physical memory
-void *mm_alloc(size_t bytes) {
-    spinlock_lock(&mm_lock);
+void *alloc(size_t bytes) {
+    mm_lock.lock();
     bytes = ((bytes + 7) / 8) * 8;
     bytes += 16;
     size_t pages = (bytes + page_size - 1) / page_size + 1;
-    void *out = (void *)top;
+    void *out = reinterpret_cast<void *>(top);
 
     for (size_t i = 0; i < pages; i++) {
-        void *p = mm_alloc(1);
+        void *p = alloc(1);
         if (!p) {
-            spinlock_release(&mm_lock);
+            mm_lock.release();
             return NULL;
         }
-        mm_map_kernel((void *)top, p, 1, MemoryFlags::READ | MemoryFlags::WRITE);
+        map_pages(vmm_get_current_context(), reinterpret_cast<void *>(top), p, 1, vmm_to_flags(MemoryFlags::READ | MemoryFlags::WRITE));
         top += page_size;
     }
 
     top += page_size;
 
-    out = (void *)((uintptr_t)out + (pages * page_size - bytes));
+    out = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(out) + (pages * page_size - bytes));
 
-    ((uint64_t *)out)[0] = bytes - 16;
-    ((uint64_t *)out)[1] = pages;
+    static_cast<uint64_t *>(out)[0] = bytes - 16;
+    static_cast<uint64_t *>(out)[1] = pages;
 
-    spinlock_release(&mm_lock);
+    mm_lock.release();
 
-    return (void *)((uintptr_t)out + 16);
+    return reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(out) + 16);
 }
 
 /// Safely allocates memory by zeroing it
-void *mm_calloc(size_t bytes, size_t elem) {
-    void *out = mm_alloc(bytes * elem);
+void *calloc(size_t bytes, size_t elem) {
+    void *out = alloc(bytes * elem);
     memset(out, 0, bytes * elem);
     return out;
 }
 
 /// Reallocates memory
-void *mm_realloc(void *old, size_t s) {
-    void *newm = mm_alloc(s);
+void *realloc(void *old, size_t s) {
+    void *newm = alloc(s);
     if (old) {
-        spinlock_lock(&mm_lock);
-        uint64_t size = *(uint64_t *)((uintptr_t)old - 16);
-        spinlock_release(&mm_lock);
+        mm_lock.lock();
+        uint64_t size = *reinterpret_cast<uint64_t *>(reinterpret_cast<uintptr_t>(old) - 16);
+        mm_lock.release();
         memcpy(newm, old, size);
-        mm_free(old);
+        free(old);
     }
     return newm;
 }
 
 
 /// Frees memory
-int mm_free(void *memory) {
-    spinlock_lock(&mm_lock);
-    size_t size = *(uint64_t *)((uintptr_t)memory - 16);
-    size_t req_pages = *(uint64_t *)((uintptr_t)memory - 8);
-    void *start = (void *)((uintptr_t)memory & (~(page_size - 1)));
+int free(void *memory) {
+    mm_lock.lock();
+    size_t size = *reinterpret_cast<uint64_t *>(reinterpret_cast<uintptr_t>(memory) - 16);
+    size_t req_pages = *reinterpret_cast<uint64_t *>(reinterpret_cast<uintptr_t>(memory) - 8);
+    void *start = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(memory) & (~(page_size - 1)));
 
     size += 16;
     size_t pages = (size + page_size - 1) / page_size + 1;
@@ -74,29 +74,30 @@ int mm_free(void *memory) {
     }
 
     for (size_t i = 0; i < pages; i++) {
-        void *curr = (void *)((uintptr_t)start + i * page_size);
-        void *p = (void *)mm_get_phys_kernel(curr);
-        mm_unmap_kernel(curr, 1);
+        void *curr = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(start) + i * page_size);
+        void *p = reinterpret_cast<void *>(vmm_get_entry(vmm_get_current_context(), curr));
+        unmap_pages(vmm_get_current_context(), curr, 1);
         pmm_free(p, 1);
     }
-    spinlock_release(&mm_lock);
+    mm_lock.release();
     return 1;
 }
 
 
 /// Fills memory with something
 void *memset(void *s, int c, size_t n) {
-    unsigned char *p = (unsigned char *)s;
+    unsigned char *p = static_cast<unsigned char *>(s);
+    unsigned char fill = static_cast<unsigned char>(c);
     while (n--)
-        *p++ = (unsigned char)c;
+        *p++ = fill;
     return s;
 }
 
 
 /// Copies memory
 void *memcpy(void *dest, const void *src, size_t len) {
-    char *d = (char *)dest;
-    const char *s = (const char *)src;
+    char *d = static_cast<char *>(dest);
+    const char *s = static_cast<const char *>(src);
     while (len--)
         *d++ = *s++;
     return dest;

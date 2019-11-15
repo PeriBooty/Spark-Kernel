@@ -1,4 +1,4 @@
-#include <hardware/devices/vbe.hpp>
+#include <sys/terminal.hpp>
 #include <hardware/port.hpp>
 #include <lib/lib.hpp>
 #include <sys/idt.hpp>
@@ -35,13 +35,15 @@ void idt_init() {
     unmask_irq(0);
     unmask_irq(1);
 
-    idt_set_gate(32, (uintptr_t)irq0, 0x08, 0x8E);  // Set callback for IRQ 0
-    idt_set_gate(33, (uintptr_t)irq1, 0x08, 0x8E);  // Set callback for IRQ 1
+    idt_set_gate(32, reinterpret_cast<uintptr_t>(irq0), 0x08, 0x8E);  // Set callback for IRQ 0
+    idt_set_gate(33, reinterpret_cast<uintptr_t>(irq1), 0x08, 0x8E);  // Set callback for IRQ 1
     pit_set_frequency(10000);                       // Set PIT frequency to 1MHz
+    Terminal::write_line("[PIT] Set frequency to 1MHz", 0xFFFFFF);
     idt_ptr.limit = 256 * sizeof(IdtEntry) - 1;     // Set Interrupt Descriptor Table pointer size
-    idt_ptr.base = (uint64_t)&idt;                  // Set Interrupt Descriptor Table pointer address
+    idt_ptr.base = reinterpret_cast<uint64_t>(&idt);                  // Set Interrupt Descriptor Table pointer address
     asm volatile("lidt %0" ::"m"(idt_ptr));         // Load Interrupt Descriptor Table pointer
     asm volatile("sti");                            // Enable interrupts
+    Terminal::write_line("[IDT] Initialized IDT successfully", 0xFFFFFF);
 }
 
 /// Adds a callback for an interrupt
@@ -95,28 +97,19 @@ void pit_set_frequency(uint32_t frequency) {
 
     Port::outb(0x43, 0x36);
     Port::wait();
-    Port::outb(0x40, (uint8_t)(divisor & 0xFF));
+    Port::outb(0x40, static_cast<uint8_t>(divisor & 0xFF));
     Port::wait();
-    Port::outb(0x40, (uint8_t)((divisor >> 8)));
+    Port::outb(0x40, static_cast<uint8_t>((divisor >> 8)));
 }
 
 // IRQ1/Keyboard interrupt handler, called by boot.asm
 extern "C" void irq1_handler() {
+    //uint8_t scancode = Port::inb(0x60); // Poll scancode
     irq_eoi(1);
 }
 
-// IRQ1/PIT interrupt handler, called by boot.asm
+// IRQ0/PIT interrupt handler, called by boot.asm
 extern "C" void pit_handler() {
-    ticks++;  // Update tick count
-
-    Display::clear(0x000000);  // Blacken display
-
-    // Display text
-    Display::write("[PIT] Ticked", 0, 0, 0xFFFFFF);
-    char ticks_str[50] = {};
-    itoa(ticks, ticks_str, 10);  // Convert ticks to a string
-
-    Display::write(ticks_str, 13 * 8, 0, 0xFFFFFF);
-    Display::write("times.", 14 * 8 + strlen(ticks_str) * 8, 0, 0xFFFFFF);
+    // Do nothing
     irq_eoi(0);
 }

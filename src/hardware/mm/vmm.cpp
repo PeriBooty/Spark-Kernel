@@ -6,7 +6,7 @@
 
 /// Converts virtual address to page table entries
 PageTableEntries virtual_to_entries(void *virt) {
-    uintptr_t addr = (uintptr_t)virt;
+    uintptr_t addr = reinterpret_cast<uintptr_t>(virt);
 
     PageTableEntries off = {
         .pml4 = (addr >> 39) & 0x1ff,
@@ -27,7 +27,7 @@ void *entries_to_virtual(PageTableEntries offs) {
     addr |= offs.pd << 21;
     addr |= offs.pt << 12;
 
-    return (void *)addr;
+    return reinterpret_cast<void *>(addr);
 }
 
 // TODO: multicore?
@@ -45,14 +45,14 @@ void vmm_init(bool is_pat_supported) {
 static inline PageTable *get_or_alloc_ent(PageTable *tab, size_t off, int flags) {
     uint64_t ent_addr = tab->ents[off] & address_mask;
     if (!ent_addr) {
-        ent_addr = tab->ents[off] = (uint64_t)pmm_alloc(1);
+        ent_addr = tab->ents[off] = reinterpret_cast<uint64_t>(pmm_alloc(1));
         if (!ent_addr)
             return NULL;
         tab->ents[off] |= flags | VirtualMemoryFlags::VMM_PRESENT;
-        memset((void *)(ent_addr + virtual_physical_base), 0, 4096);
+        memset(reinterpret_cast<void *>(ent_addr + virtual_physical_base), 0, 4096);
     }
 
-    return (PageTable *)(ent_addr + virtual_physical_base);
+    return reinterpret_cast<PageTable *>(ent_addr + virtual_physical_base);
 }
 
 /// Gets or nulls a page table entry
@@ -61,7 +61,7 @@ static inline PageTable *get_or_null_ent(PageTable *tab, size_t off) {
     if (!ent_addr)
         return NULL;
 
-    return (PageTable *)(ent_addr + virtual_physical_base);
+    return reinterpret_cast<PageTable *>(ent_addr + virtual_physical_base);
 }
 
 /// Maps a virtual address
@@ -69,14 +69,14 @@ bool map_pages(PageTable *pml4, void *virt, void *phys, size_t count, int perms)
     while (count--) {
         PageTableEntries offs = virtual_to_entries(virt);
 
-        PageTable *pml4_virt = (PageTable *)((uint64_t)pml4 + virtual_physical_base);
+        PageTable *pml4_virt = reinterpret_cast<PageTable *>(reinterpret_cast<uint64_t>(pml4) + virtual_physical_base);
         PageTable *pdp_virt = get_or_alloc_ent(pml4_virt, offs.pml4, perms);
         PageTable *pd_virt = get_or_alloc_ent(pdp_virt, offs.pdp, perms);
         PageTable *pt_virt = get_or_alloc_ent(pd_virt, offs.pd, perms);
-        pt_virt->ents[offs.pt] = (uint64_t)phys | perms | VirtualMemoryFlags::VMM_PRESENT;
+        pt_virt->ents[offs.pt] = reinterpret_cast<uint64_t>(phys) | perms | VirtualMemoryFlags::VMM_PRESENT;
 
-        virt = (void *)((uintptr_t)virt + 0x1000);
-        phys = (void *)((uintptr_t)phys + 0x1000);
+        virt = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(virt) + 0x1000);
+        phys = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(phys) + 0x1000);
     }
 
     return true;
@@ -87,7 +87,7 @@ bool unmap_pages(PageTable *pml4, void *virt, size_t count) {
     while (count--) {
         PageTableEntries offs = virtual_to_entries(virt);
 
-        PageTable *pml4_virt = (PageTable *)((uint64_t)pml4 + virtual_physical_base);
+        PageTable *pml4_virt = reinterpret_cast<PageTable *>(reinterpret_cast<uint64_t>(pml4) + virtual_physical_base);
         PageTable *pdp_virt = get_or_null_ent(pml4_virt, offs.pml4);
         if (!pdp_virt) return false;
         PageTable *pd_virt = get_or_null_ent(pdp_virt, offs.pdp);
@@ -96,7 +96,7 @@ bool unmap_pages(PageTable *pml4, void *virt, size_t count) {
         if (!pt_virt) return false;
         pt_virt->ents[offs.pt] = 0;
 
-        virt = (void *)((uintptr_t)virt + 0x1000);
+        virt = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(virt) + 0x1000);
     }
 
     return true;
@@ -107,7 +107,7 @@ bool vmm_update_perms(PageTable *pml4, void *virt, size_t count, int perms) {
     while (count--) {
         PageTableEntries offs = virtual_to_entries(virt);
 
-        PageTable *pml4_virt = (PageTable *)((uint64_t)pml4 + virtual_physical_base);
+        PageTable *pml4_virt = reinterpret_cast<PageTable *>(reinterpret_cast<uint64_t>(pml4) + virtual_physical_base);
         PageTable *pdp_virt = get_or_null_ent(pml4_virt, offs.pml4);
         if (!pdp_virt) return false;
         PageTable *pd_virt = get_or_null_ent(pdp_virt, offs.pdp);
@@ -116,7 +116,7 @@ bool vmm_update_perms(PageTable *pml4, void *virt, size_t count, int perms) {
         if (!pt_virt) return false;
         pt_virt->ents[offs.pt] = (pt_virt->ents[offs.pt] & address_mask) | perms | VirtualMemoryFlags::VMM_PRESENT;
 
-        virt = (void *)((uintptr_t)virt + 0x1000);
+        virt = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(virt) + 0x1000);
     }
 
     return true;
@@ -127,13 +127,13 @@ bool map_huge_pages(PageTable *pml4, void *virt, void *phys, size_t count, int p
     while (count--) {
         PageTableEntries offs = virtual_to_entries(virt);
 
-        PageTable *pml4_virt = (PageTable *)((uint64_t)pml4 + virtual_physical_base);
+        PageTable *pml4_virt = reinterpret_cast<PageTable *>(reinterpret_cast<uint64_t>(pml4) + virtual_physical_base);
         PageTable *pdp_virt = get_or_alloc_ent(pml4_virt, offs.pml4, perms);
         PageTable *pd_virt = get_or_alloc_ent(pdp_virt, offs.pdp, perms);
-        pd_virt->ents[offs.pd] = (uint64_t)phys | perms | VirtualMemoryFlags::VMM_PRESENT | VirtualMemoryFlags::VMM_LARGE;
+        pd_virt->ents[offs.pd] = reinterpret_cast<uint64_t>(phys) | perms | VirtualMemoryFlags::VMM_PRESENT | VirtualMemoryFlags::VMM_LARGE;
 
-        virt = (void *)((uintptr_t)virt + 0x200000);
-        phys = (void *)((uintptr_t)phys + 0x200000);
+        virt = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(virt) + 0x200000);
+        phys = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(phys) + 0x200000);
     }
 
     return true;
@@ -144,13 +144,13 @@ bool unmap_huge_pages(PageTable *pml4, void *virt, size_t count) {
     while (count--) {
         PageTableEntries offs = virtual_to_entries(virt);
 
-        PageTable *pml4_virt = (PageTable *)((uint64_t)pml4 + virtual_physical_base);
+        PageTable *pml4_virt = reinterpret_cast<PageTable *>(reinterpret_cast<uint64_t>(pml4) + virtual_physical_base);
         PageTable *pdp_virt = get_or_null_ent(pml4_virt, offs.pml4);
         if (!pdp_virt) return false;
         PageTable *pd_virt = get_or_null_ent(pdp_virt, offs.pdp);
         pd_virt->ents[offs.pd] = 0;
 
-        virt = (void *)((uintptr_t)virt + 0x200000);
+        virt = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(virt) + 0x200000);
     }
 
     return true;
@@ -161,13 +161,13 @@ bool update_huge_perms(PageTable *pml4, void *virt, size_t count, int perms) {
     while (count--) {
         PageTableEntries offs = virtual_to_entries(virt);
 
-        PageTable *pml4_virt = (PageTable *)((uint64_t)pml4 + virtual_physical_base);
+        PageTable *pml4_virt = reinterpret_cast<PageTable *>(reinterpret_cast<uint64_t>(pml4) + virtual_physical_base);
         PageTable *pdp_virt = get_or_null_ent(pml4_virt, offs.pml4);
         if (!pdp_virt) return false;
         PageTable *pd_virt = get_or_null_ent(pdp_virt, offs.pdp);
         pd_virt->ents[offs.pd] = (pd_virt->ents[offs.pd] & address_mask) | perms | VirtualMemoryFlags::VMM_PRESENT | VirtualMemoryFlags::VMM_LARGE;
 
-        virt = (void *)((uintptr_t)virt + 0x200000);
+        virt = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(virt) + 0x200000);
     }
 
     return true;
@@ -182,7 +182,7 @@ uintptr_t vmm_get_entry(PageTable *pml4, void *virt) {
 
     PageTableEntries offs = virtual_to_entries(virt);
 
-    PageTable *pml4_virt = (PageTable *)((uint64_t)pml4 + virtual_physical_base);
+    PageTable *pml4_virt = reinterpret_cast<PageTable *>(reinterpret_cast<uint64_t>(pml4) + virtual_physical_base);
     PageTable *pdp_virt = get_or_null_ent(pml4_virt, offs.pml4);
     if (!pdp_virt) return 0;
     PageTable *pd_virt = get_or_null_ent(pdp_virt, offs.pdp);
@@ -194,18 +194,18 @@ uintptr_t vmm_get_entry(PageTable *pml4, void *virt) {
 
 /// Creates a new address space
 PageTable *new_address_space() {
-    PageTable *new_pml4 = (PageTable *)pmm_alloc(1);
-    memset((void *)((uintptr_t)new_pml4 + virtual_physical_base), 0, 4096);
+    PageTable *new_pml4 = static_cast<PageTable *>(pmm_alloc(1));
+    memset(reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(new_pml4) + virtual_physical_base), 0, 4096);
 
-    map_huge_pages(new_pml4, (void *)0xFFFFFFFF80000000, NULL, 64, 3);
-    map_huge_pages(new_pml4, (void *)0xFFFF800000000000, NULL, 512 * 4, 3);
+    map_huge_pages(new_pml4, reinterpret_cast<void *>(0xFFFFFFFF80000000), NULL, 64, 3);
+    map_huge_pages(new_pml4, reinterpret_cast<void *>(0xFFFF800000000000), NULL, 512 * 4, 3);
 
     return new_pml4;
 }
 
 /// Gives the saved context's pointer
 PageTable **vmm_get_ctx_ptr() {
-    return (PageTable **)vmm_get_current_context();  // I don't know what I did but DON'T TOUCH IT!!
+    return reinterpret_cast<PageTable **>(vmm_get_current_context());  // I don't know what I did but DON'T TOUCH IT!!
 }
 
 /// Saves the current context
@@ -248,7 +248,7 @@ PageTable *vmm_get_current_context() {
                  : "=a"(ctx)
                  :
                  : "memory");
-    return (PageTable *)ctx;
+    return reinterpret_cast<PageTable *>(ctx);
 }
 
 /// Updates the mapping
@@ -263,104 +263,33 @@ void vmm_update_mapping(void *ptr) {
 void vmm_ctx_memcpy(PageTable *dst_ctx, void *dst_addr, PageTable *src_ctx, void *src_addr, size_t size) {
     uintptr_t src_virt = 0x780000000000;
     uintptr_t dst_virt = 0x700000000000;
-    uintptr_t dst = (uintptr_t)dst_addr & (~0xFFF);
-    uintptr_t src = (uintptr_t)src_addr & (~0xFFF);
-    size_t map_size = size + Math::max((uintptr_t)dst_addr & 0xFFF, (uintptr_t)src_addr & 0xFFF);
-    for (size_t i = 0; i < map_size;
-         i += 0x1000, src_virt += 0x1000, src += 0x1000,
-                dst_virt += 0x1000, dst += 0x1000) {
-        uintptr_t dst_phys = vmm_get_entry(dst_ctx, (void *)dst) & address_mask;
-        uintptr_t src_phys = vmm_get_entry(src_ctx, (void *)src) & address_mask;
+    uintptr_t dst = reinterpret_cast<uintptr_t>(dst_addr) & (~0xFFF);
+    uintptr_t src = reinterpret_cast<uintptr_t>(src_addr) & (~0xFFF);
+    size_t map_size = size + Math::max(reinterpret_cast<uintptr_t>(dst_addr) & 0xFFF, reinterpret_cast<uintptr_t>(src_addr) & 0xFFF);
 
-        map_pages(kernel_pml4, (void *)dst_virt, (void *)dst_phys, 1, VirtualMemoryFlags::VMM_WRITE);
-        map_pages(kernel_pml4, (void *)src_virt, (void *)src_phys, 1, VirtualMemoryFlags::VMM_WRITE);
-        vmm_update_mapping((void *)dst_virt);
-        vmm_update_mapping((void *)src_virt);
+    for (size_t i = 0; i < map_size; i += 0x1000, src_virt += 0x1000, src += 0x1000, dst_virt += 0x1000, dst += 0x1000) {
+        uintptr_t dst_phys = vmm_get_entry(dst_ctx, reinterpret_cast<void *>(dst)) & address_mask;
+        uintptr_t src_phys = vmm_get_entry(src_ctx, reinterpret_cast<void *>(src)) & address_mask;
+
+        map_pages(kernel_pml4, reinterpret_cast<void *>(dst_virt), reinterpret_cast<void *>(dst_phys), 1, VirtualMemoryFlags::VMM_WRITE);
+        map_pages(kernel_pml4, reinterpret_cast<void *>(src_virt), reinterpret_cast<void *>(src_phys), 1, VirtualMemoryFlags::VMM_WRITE);
+        vmm_update_mapping(reinterpret_cast<void *>(dst_virt));
+        vmm_update_mapping(reinterpret_cast<void *>(src_virt));
     }
 
-    memcpy((void *)(0x700000000000 + ((uintptr_t)dst_addr & 0xFFF)),
-           (void *)(0x780000000000 + ((uintptr_t)src_addr & 0xFFF)), size);
+    memcpy(reinterpret_cast<void *>(0x700000000000 + (reinterpret_cast<uintptr_t>(dst_addr) & 0xFFF)), reinterpret_cast<void *>(0x780000000000 + (reinterpret_cast<uintptr_t>(src_addr) & 0xFFF)), size);
 
     src_virt = 0x780000000000;
     dst_virt = 0x700000000000;
-    for (size_t i = 0; i < size;
-         i += 0x1000, src_virt += 0x1000, dst_virt += 0x1000) {
-        unmap_pages(kernel_pml4, (void *)dst_virt, 1);
-        unmap_pages(kernel_pml4, (void *)src_virt, 1);
-        vmm_update_mapping((void *)dst_virt);
-        vmm_update_mapping((void *)src_virt);
+
+    for (size_t i = 0; i < size; i += 0x1000, src_virt += 0x1000, dst_virt += 0x1000) {
+        unmap_pages(kernel_pml4, reinterpret_cast<void *>(dst_virt), 1);
+        unmap_pages(kernel_pml4, reinterpret_cast<void *>(src_virt), 1);
+        vmm_update_mapping(reinterpret_cast<void *>(dst_virt));
+        vmm_update_mapping(reinterpret_cast<void *>(src_virt));
     }
 }
 
-/// Converts flags int to flags
 int vmm_to_flags(int flags) {
     return ((flags & MemoryFlags::WRITE) ? VirtualMemoryFlags::VMM_WRITE : 0) | ((flags & MemoryFlags::USER) ? VirtualMemoryFlags::VMM_USER : 0) | ((flags & MemoryFlags::NO_CACHE) ? (VirtualMemoryFlags::VMM_NO_CACHE | VirtualMemoryFlags::VMM_WT) : 0);
-}
-
-/// Maps kernel memory
-bool mm_map_kernel(void *dst, void *src, size_t size, int flags) {
-    return map_pages(kernel_pml4, dst, src, size, vmm_to_flags(flags));
-}
-
-// Unmaps kernel memory
-bool mm_unmap_kernel(void *dst, size_t size) {
-    return unmap_pages(kernel_pml4, dst, size);
-}
-
-/// Gets kernel physical memory
-uintptr_t mm_get_phys_kernel(void *dst) {
-    return vmm_get_entry(kernel_pml4, dst) & address_mask;
-}
-
-/// Gets flags from kernel memory
-int mm_get_flags_kernel(void *dst) {
-    int arch_flags = vmm_get_entry(kernel_pml4, dst) & flag_mask;
-    int flags = arch_flags ? (MemoryFlags::READ | MemoryFlags::EXECUTE) : 0;
-    if (arch_flags & VirtualMemoryFlags::VMM_WRITE) flags |= MemoryFlags::WRITE;
-    if (arch_flags & VirtualMemoryFlags::VMM_USER) flags |= MemoryFlags::USER;
-    if (arch_flags & VirtualMemoryFlags::VMM_NO_CACHE) flags |= MemoryFlags::NO_CACHE;
-    if (arch_flags & VirtualMemoryFlags::VMM_WT) flags |= MemoryFlags::NO_CACHE;
-    return flags;
-}
-
-/// Gets the kernel context
-void *mm_get_ctx_kernel() {
-    return kernel_pml4;
-}
-
-/// Stores the context
-bool mm_store_context() {
-    vmm_save_context();
-    return true;
-}
-
-/// Switches the context
-bool mm_switch_context(void *ctx) {
-    vmm_set_context((PageTable *)ctx);
-    return true;
-}
-
-/// Restores the context
-int mm_restore_context() {
-    vmm_restore_context();
-    return true;
-}
-
-/// Drops the context
-bool mm_drop_context() {
-    vmm_drop_context();
-    return true;
-}
-
-/// Updates the context for all CPUs
-bool mm_update_context_all() {
-    PageTable *ctx = vmm_get_current_context();
-    vmm_set_context(ctx);
-    return true;
-}
-
-/// Updates the context for a single CPU
-bool mm_update_context_single(void *dst) {
-    vmm_update_mapping(dst);
-    return true;
 }
