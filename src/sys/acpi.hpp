@@ -34,7 +34,7 @@ struct Rsdt {
     uint32_t other_std_ptr[];
 };
 
-struct GenericAddressStructure {
+struct GenericAddress {
     uint8_t address_space;
     uint8_t bit_width;
     uint8_t bit_offset;
@@ -82,7 +82,7 @@ struct Fadt {
     uint16_t boot_architecture_flags;  // reserved in ACPI 1.0; used since ACPI 2.0+
     uint8_t reserved2;
     uint32_t flags;
-    GenericAddressStructure reset_reg; // 12 byte structure; see below for details
+    GenericAddress reset_reg;
     uint8_t reset_value;
     uint8_t reserved3[3];
 
@@ -90,15 +90,14 @@ struct Fadt {
     uint64_t x_firmware_control;
     uint64_t x_dsdt;
 
-    GenericAddressStructure x_pm1a_event_block;
-    GenericAddressStructure x_pm1b_event_block;
-    GenericAddressStructure x_pm1a_control_block;
-    GenericAddressStructure x_pm1b_control_block;
-    GenericAddressStructure x_pm2_control_block;
-    GenericAddressStructure x_pm_timer_block;
-    GenericAddressStructure x_gpe0_block;
-    GenericAddressStructure x_gpe1_block;
+    GenericAddress x_pm1a_event_block;
+    GenericAddress x_pm1b_event_block;
+    GenericAddress x_pm1a_control_block;
+    GenericAddress x_pm1b_control_block;
+    GenericAddress x_pm2_control_block;
+    GenericAddress x_pm_timer_block;
+    GenericAddress x_gpe0_block;
+    GenericAddress x_gpe1_block;
 };
 
 void init_acpi();
-Fadt *find_facp(Rsdt *rsdt);
