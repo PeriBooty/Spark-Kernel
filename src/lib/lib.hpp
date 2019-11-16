@@ -3,10 +3,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
-int printf(const char *format, ...);
+int printf(const char* format, ...);
 
 /// Get if a string exists and the location of the string
-int strncmp(const char* s1, const char* s2, size_t n);
+int strncmp(const signed char* s1, const signed char* s2, size_t n);
 
 /// Get length of string
 size_t strlen(const char*);
@@ -23,7 +23,7 @@ size_t strnlen(const char16_t* chr, size_t max_len);
 /// Converts an integer to a string
 char* itoa(int value, char* result, int base);
 
-void htoa(int64_t n, char *str);
+void htoa(int64_t n, char* str);
 
 /// Copy
 template <class InputIt, class OutputIt>

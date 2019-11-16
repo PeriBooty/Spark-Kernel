@@ -49,13 +49,9 @@ bool isxdigit(int ch) {
 }
 
 bool tolower(int ch) {
-    if (isupper(ch))
-        return ch ^ 0x20;
-    return ch;
+    return isupper(ch) ? ch ^ 0x20 : ch;
 }
 
 bool toupper(int ch) {
-    if (islower(ch))
-        return ch ^ 0x20;
-    return ch;
+    return islower(ch) ? ch ^ 0x20 : ch;
 }

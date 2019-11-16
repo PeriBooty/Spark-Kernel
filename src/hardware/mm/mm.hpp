@@ -17,16 +17,16 @@ enum MemoryFlags {
 };
 
 /// Allocates physical memory
-void *alloc(size_t blocks);
+void* malloc(size_t blocks);
 
 /// Safely allocates memory by zeroing it
-void *calloc(size_t blocks);
+void* calloc(size_t blocks);
 
 /// Frees memory
-int free(void *memory);
+int free(void* memory);
 
 /// Fills memory with something
-void *memset(void *s, int c, size_t n);
+void* memset(void* s, int c, size_t n);
 
 /// Copies memory
-void *memcpy(void *dest, const void *src, size_t len);
+void* memcpy(void* dest, const void* src, size_t len);

@@ -4,7 +4,7 @@
 struct BitmapFont {
     unsigned char width;
     unsigned char height;
-    const unsigned char *bitmap;
+    const unsigned char* bitmap;
 };
 
 /// The kernel font bitmap

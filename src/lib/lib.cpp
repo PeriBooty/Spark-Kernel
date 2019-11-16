@@ -2,7 +2,7 @@
 #include <lib/lib.hpp>
 #include <sys/terminal.hpp>
 
-int printf(const char *format, ...) {
+int printf(const char* format, ...) {
     va_list parameters;
     va_start(parameters, format);
 
@@ -28,11 +28,11 @@ int printf(const char *format, ...) {
             continue;
         }
 
-        const char *format_begun_at = format++;
+        const char* format_begun_at = format++;
 
         if (*format == 'c') {
             format++;
-            char c = (char)va_arg(parameters, int);
+            char c = static_cast<char>(va_arg(parameters, int));
             if (!maxrem) {
                 va_end(parameters);
                 return -1;
@@ -44,7 +44,7 @@ int printf(const char *format, ...) {
             written++;
         } else if (*format == 's') {
             format++;
-            const char *str = va_arg(parameters, const char *);
+            const char* str = va_arg(parameters, const char*);
             size_t len = strlen(str);
 
             if (maxrem < len) {
@@ -105,17 +105,14 @@ int printf(const char *format, ...) {
     return written;
 }
 
-int strncmp(const char *s1, const char *s2, size_t n) {
-    while (n && *s1 && (*s1 == *s2)) {
-        ++s1;
-        ++s2;
-        --n;
-    }
-    return !n ? 0 : (*(uint8_t *)s1 - *(uint8_t *)s2);
+int strncmp(const signed char* s1, const signed char* s2, size_t n) {
+    for (; n && *s1 && (*s1 == *s2); ++s1, ++s2, --n)
+        ;
+    return !n ? 0 : (*s1 - *s2);
 }
 
 /// Get length of string
-size_t strlen(const char *chr) {
+size_t strlen(const char* chr) {
     size_t size = 0;
     while (*chr++)
         size++;
@@ -123,7 +120,7 @@ size_t strlen(const char *chr) {
 }
 
 /// Get length of string
-size_t strlen(const char16_t *chr) {
+size_t strlen(const char16_t* chr) {
     size_t size = 0;
     while (*chr++)
         size++;
@@ -131,7 +128,7 @@ size_t strlen(const char16_t *chr) {
 }
 
 /// Get length of string until max length
-size_t strnlen(const char *chr, size_t max_len) {
+size_t strnlen(const char* chr, size_t max_len) {
     size_t size = 0;
     for (; (size < max_len) && chr[size]; ++size)
         ;
@@ -139,7 +136,7 @@ size_t strnlen(const char *chr, size_t max_len) {
 }
 
 /// Get length of string until max length
-size_t strnlen(const char16_t *chr, size_t max_len) {
+size_t strnlen(const char16_t* chr, size_t max_len) {
     size_t size = 0;
     for (; (size < max_len) && chr[size]; ++size)
         ;
@@ -147,11 +144,9 @@ size_t strnlen(const char16_t *chr, size_t max_len) {
 }
 
 /// Converts an integer to a string
-char *itoa(int value, char *result, int base) {
-    if (base < 2 || base > 36) {
-        *result = '\0';
-        return result;
-    }
+char* itoa(int value, char* result, int base) {
+    if (base < 2 || base > 36)
+        return &(*result = '\0');
     char *ptr = result, *ptr1 = result, tmp_char;
     int tmp_value;
     do {
@@ -161,36 +156,25 @@ char *itoa(int value, char *result, int base) {
     } while (value);
     if (tmp_value < 0) *ptr++ = '-';
     *ptr-- = '\0';
-    while (ptr1 < ptr) {
-        tmp_char = *ptr;
-        *ptr-- = *ptr1;
-        *ptr1++ = tmp_char;
-    }
+    for (; ptr1 < ptr; tmp_char = *ptr, *ptr-- = *ptr1, *ptr1++ = tmp_char)
+        ;
     return result;
 }
 
-void htoa(int64_t n, char *str) {
+void htoa(int64_t n, char* str) {
     *str++ = '0';
     *str++ = 'x';
 
     int8_t zeros = 0;
     int64_t tmp;
+
     for (int i = 60; i > 0; i -= 4) {
         tmp = (n >> i) & 0xF;
-        if (tmp == 0 && zeros == 0) continue;
-
+        if (tmp == 0 && zeros == 0)
+            continue;
         zeros -= 1;
-
-        if (tmp >= 0xA)
-            *str++ = (tmp - 0xA + 'a');
-        else
-            *str++ = (tmp + '0');
+        *str++ = tmp >= 0xA ? tmp - 0xA + 'a' : tmp + '0';
     }
-
     tmp = n & 0xF;
-
-    if (tmp >= 0xA)
-        *str++ = (tmp - 0xA + 'a');
-    else
-        *str++ = (tmp + '0');
+    *str++ = tmp >= 0xA ? tmp - 0xA + 'a' : tmp + '0';
 }

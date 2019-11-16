@@ -5,52 +5,93 @@
 #include <sys/panic.hpp>
 #include <sys/terminal.hpp>
 
-static Rsdt *rsdt;
+RSDPInfo ACPI::rsdp_info = {};
 
-void init_acpi() {
-    RsdpDescriptor *rsdp_descriptor = find_rsdp();
+inline uint8_t ACPI::bios_calculate_checksum(void* ptr, size_t size) {
+    uint8_t sum = 0;
+    for (size_t i = 0; i < size; i++)
+        sum += ((uint8_t*)ptr)[i];
+    return sum;
+}
 
-    printf("[ACPI] Detected ACPI v%d, OEM: %s", rsdp_descriptor->revision + 1, rsdp_descriptor->oem_id);
-    if (rsdp_descriptor->revision > 0) {
-        //RsdpDescriptor2 &rsdp_descriptor2 = *(RsdpDescriptor2 *)rsd_ptr;
-    } else {
-        rsdt = reinterpret_cast<Rsdt *>(static_cast<uint64_t>(rsdp_descriptor->rsdt_addr) + virtual_physical_base);
-        Fadt *fadt = reinterpret_cast<Fadt *>(rsdt_search("FACP"));
-        Port::outb(fadt->smi_command_port, fadt->acpi_enable);
-        Terminal::write_line("[ACPI] Waiting for PM1a control block...", 0xFFFFFF);
-        while ((Port::inw(fadt->pm1a_control_block) & 1) == 0)
-            ;
+inline RSDPInfo ACPI::bios_detect_rsdp(uint64_t base, size_t length) {
+    uint64_t address = base + virtual_physical_base;
+    RSDPInfo info{};
+
+    for (size_t off = 0; off < length; off += 16) {
+        RSDPDescriptor* rsdp = reinterpret_cast<RSDPDescriptor*>(address + off);
+
+        if (strncmp(reinterpret_cast<const signed char*>(rsdp->signature), reinterpret_cast<const signed char*>("RSD PTR "), 8) || bios_calculate_checksum(rsdp, sizeof(RSDPDescriptor)))
+            continue;
+
+        info.rsdp_address = base + off + virtual_physical_base;
+
+        if (!rsdp->revision) {
+            info.version = 1;
+            info.address = static_cast<uint64_t>(rsdp->rsdt_address) + virtual_physical_base;
+            break;
+        } else {
+            RSDPDescriptor2* rsdp2 = reinterpret_cast<RSDPDescriptor2*>(rsdp);
+
+            if (bios_calculate_checksum(rsdp2, sizeof(RSDPDescriptor)))
+                continue;
+
+            info.version = 2;
+            info.address = static_cast<uint64_t>(rsdp2->xsdt_address) + virtual_physical_base;
+            break;
+        }
     }
-    Terminal::write_line("[ACPI] Initialized ACPI successfully", 0xFFFFFF);
+
+    return info;
 }
 
-inline RsdpDescriptor *find_rsdp() {
-    uint64_t rsd_ptr = 0;
+inline RSDPInfo ACPI::bios_detect_rsdp() {
+    RSDPInfo info = bios_detect_rsdp(static_cast<uint64_t>(*reinterpret_cast<uint16_t*>(static_cast<uint64_t>(0x40E) + virtual_physical_base)) << 4, 0x400);
 
-    for (uint64_t i = 0x80000 + virtual_physical_base; i < 0xa0000 + virtual_physical_base && !rsd_ptr; i += 8)
-        rsd_ptr = !strncmp(reinterpret_cast<const char *>(i), "RSD PTR ", 8) ? i : 0;
-
-    if (!rsd_ptr)
-        for (uint64_t i = 0xf0000 + virtual_physical_base; i < 0x100000 + virtual_physical_base && !rsd_ptr; i += 8)
-            rsd_ptr = !strncmp(reinterpret_cast<const char *>(i), "RSD PTR ", 8) ? i : 0;
-
-    if (!rsd_ptr)
-        kernel_panic("ACPI not supported");
-        
-    return reinterpret_cast<RsdpDescriptor *>(rsd_ptr);
+    if (!info.version)
+        info = bios_detect_rsdp(0xE0000, 0x20000);
+    if (!info.version)
+        panic("ACPI not supported");
+    return info;
 }
 
-inline AcpiSdtHeader *rsdt_search(const char *signature) {
-    if (!rsdt)
+inline ACPISDTHeader* ACPI::bios_rsdt_search(const char* signature) {
+    if (!rsdp_info.version)
         return NULL;
 
-    uint32_t entries = (rsdt->h.len - sizeof(rsdt->h)) / 4;
+    if (rsdp_info.version < 2) {
+        RSDT* rsdt = reinterpret_cast<RSDT*>(rsdp_info.address);
 
-    for (uint32_t i = 0; i < entries; i++) {
-        AcpiSdtHeader *h = reinterpret_cast<AcpiSdtHeader *>(static_cast<uint64_t>(rsdt->other_std_ptr[i]) + virtual_physical_base);
-        if (!strncmp(h->signature, signature, strlen(signature)))
-            return h;
+        uint32_t entries = (rsdt->header.length - sizeof(rsdt->header)) / 4;
+
+        for (uint32_t i = 0; i < entries; i++) {
+            ACPISDTHeader* h = reinterpret_cast<ACPISDTHeader*>(static_cast<uint64_t>(rsdt->other_std[i]) + virtual_physical_base);
+            if (!strncmp(reinterpret_cast<const signed char*>(h->signature), reinterpret_cast<const signed char*>(signature), strlen(signature)))
+                return h;
+        }
+    } else {
+        XSDT* xsdt = reinterpret_cast<XSDT*>(rsdp_info.address);
+
+        uint32_t entries = (xsdt->header.length - sizeof(xsdt->header)) / 4;
+
+        for (uint32_t i = 0; i < entries; i++) {
+            ACPISDTHeader* h = reinterpret_cast<ACPISDTHeader*>(static_cast<uint64_t>(xsdt->other_std[i]) + virtual_physical_base);
+            if (!strncmp(reinterpret_cast<const signed char*>(h->signature), reinterpret_cast<const signed char*>(signature), strlen(signature)))
+                return h;
+        }
     }
 
-    return NULL;  // No FACP found
+    return NULL;
+}
+
+void ACPI::init() {
+    rsdp_info = bios_detect_rsdp();
+
+    printf("[ACPI] Detected ACPI v%d, OEM: %s", rsdp_info.version, reinterpret_cast<RSDPDescriptor*>(rsdp_info.rsdp_address)->oem_id);
+    /*FADT* fadt = reinterpret_cast<FADT*>(bios_rsdt_search("FACP"));
+    Port::outb(fadt->smi_command_port, fadt->acpi_enable);
+    Terminal::write_line("[ACPI] Waiting for PM1a control block...", 0xFFFFFF);
+    while ((Port::inw(fadt->pm1a_control_block) & 1) == 0)
+        ;*/
+    Terminal::write_line("[ACPI] Initialized ACPI successfully", 0xFFFFFF);
 }

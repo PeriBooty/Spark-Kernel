@@ -9,48 +9,48 @@ static uintptr_t top = memory_base;
 
 
 /// Allocates physical memory
-void *alloc(size_t bytes) {
+void* malloc(size_t bytes) {
     mm_lock.lock();
     bytes = ((bytes + 7) / 8) * 8;
     bytes += 16;
     size_t pages = (bytes + page_size - 1) / page_size + 1;
-    void *out = reinterpret_cast<void *>(top);
+    void* out = reinterpret_cast<void*>(top);
 
     for (size_t i = 0; i < pages; i++) {
-        void *p = alloc(1);
+        void* p = malloc(1);
         if (!p) {
             mm_lock.release();
             return NULL;
         }
-        map_pages(vmm_get_current_context(), reinterpret_cast<void *>(top), p, 1, vmm_to_flags(MemoryFlags::READ | MemoryFlags::WRITE));
+        VMM::map_pages(VMM::get_current_context(), reinterpret_cast<void*>(top), p, 1, VMM::to_flags(MemoryFlags::READ | MemoryFlags::WRITE));
         top += page_size;
     }
 
     top += page_size;
 
-    out = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(out) + (pages * page_size - bytes));
+    out = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(out) + (pages * page_size - bytes));
 
-    static_cast<uint64_t *>(out)[0] = bytes - 16;
-    static_cast<uint64_t *>(out)[1] = pages;
+    static_cast<uint64_t*>(out)[0] = bytes - 16;
+    static_cast<uint64_t*>(out)[1] = pages;
 
     mm_lock.release();
 
-    return reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(out) + 16);
+    return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(out) + 16);
 }
 
 /// Safely allocates memory by zeroing it
-void *calloc(size_t bytes, size_t elem) {
-    void *out = alloc(bytes * elem);
+void* calloc(size_t bytes, size_t elem) {
+    void* out = malloc(bytes * elem);
     memset(out, 0, bytes * elem);
     return out;
 }
 
 /// Reallocates memory
-void *realloc(void *old, size_t s) {
-    void *newm = alloc(s);
+void* realloc(void* old, size_t s) {
+    void* newm = malloc(s);
     if (old) {
         mm_lock.lock();
-        uint64_t size = *reinterpret_cast<uint64_t *>(reinterpret_cast<uintptr_t>(old) - 16);
+        uint64_t size = *reinterpret_cast<uint64_t*>(reinterpret_cast<uintptr_t>(old) - 16);
         mm_lock.release();
         memcpy(newm, old, size);
         free(old);
@@ -60,11 +60,11 @@ void *realloc(void *old, size_t s) {
 
 
 /// Frees memory
-int free(void *memory) {
+int free(void* memory) {
     mm_lock.lock();
-    size_t size = *reinterpret_cast<uint64_t *>(reinterpret_cast<uintptr_t>(memory) - 16);
-    size_t req_pages = *reinterpret_cast<uint64_t *>(reinterpret_cast<uintptr_t>(memory) - 8);
-    void *start = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(memory) & (~(page_size - 1)));
+    size_t size = *reinterpret_cast<uint64_t*>(reinterpret_cast<uintptr_t>(memory) - 16);
+    size_t req_pages = *reinterpret_cast<uint64_t*>(reinterpret_cast<uintptr_t>(memory) - 8);
+    void* start = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory) & (~(page_size - 1)));
 
     size += 16;
     size_t pages = (size + page_size - 1) / page_size + 1;
@@ -74,10 +74,10 @@ int free(void *memory) {
     }
 
     for (size_t i = 0; i < pages; i++) {
-        void *curr = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(start) + i * page_size);
-        void *p = reinterpret_cast<void *>(vmm_get_entry(vmm_get_current_context(), curr));
-        unmap_pages(vmm_get_current_context(), curr, 1);
-        pmm_free(p, 1);
+        void* curr = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(start) + i * page_size);
+        void* p = reinterpret_cast<void*>(VMM::get_entry(VMM::get_current_context(), curr));
+        VMM::unmap_pages(VMM::get_current_context(), curr, 1);
+        PMM::free(p, 1);
     }
     mm_lock.release();
     return 1;
@@ -85,8 +85,8 @@ int free(void *memory) {
 
 
 /// Fills memory with something
-void *memset(void *s, int c, size_t n) {
-    unsigned char *p = static_cast<unsigned char *>(s);
+void* memset(void* s, int c, size_t n) {
+    unsigned char* p = static_cast<unsigned char*>(s);
     unsigned char fill = static_cast<unsigned char>(c);
     while (n--)
         *p++ = fill;
@@ -95,9 +95,9 @@ void *memset(void *s, int c, size_t n) {
 
 
 /// Copies memory
-void *memcpy(void *dest, const void *src, size_t len) {
-    char *d = static_cast<char *>(dest);
-    const char *s = static_cast<const char *>(src);
+void* memcpy(void* dest, const void* src, size_t len) {
+    char* d = static_cast<char*>(dest);
+    const char* s = static_cast<const char*>(src);
     while (len--)
         *d++ = *s++;
     return dest;

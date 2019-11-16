@@ -28,49 +28,78 @@ struct PageTableEntries {
     size_t pt;
 };
 
-/// Converts virtual address to page table entries
-PageTableEntries virtual_to_entries(void *virt);
+class VMM {
+private:
+    /// The kernel's PML4
+    static PageTable* kernel_pml4;
 
-/// Converts page table entries to a virtual address
-void *entries_to_virtual(PageTableEntries entries);
+    /// Gets or allocates a page table entry
+    static inline PageTable* get_or_alloc_ent(PageTable* tab, size_t off, int flags);
 
-/// Initializes 4-level paging
-void vmm_init(bool is_pat_supported);
+    /// Gets or nulls a page table entry
+    static inline PageTable* get_or_null_ent(PageTable* tab, size_t off);
 
-/// Maps a virtual address
-bool map_pages(PageTable *pml4, void *virt, void *phys, size_t count, int perms);
+    /// Updates the mapping
+    static void update_mapping(void* ptr);
 
-/// Unmaps a virtual address
-bool unmap_pages(PageTable *pml4, void *virt, size_t count);
+    /// Gives the saved context's pointer
+    static PageTable* get_saved_context();
 
-/// Updates a virtual address' permissions
-bool vmm_update_perms(PageTable *pml4, void *virt, size_t count, int perms);
+public:
+    /// Converts virtual address to page table entries
+    static PageTableEntries virtual_to_entries(void* virt);
 
-/// Gets physical address
-uintptr_t vmm_get_entry(PageTable *pml4, void *virt);
+    /// Converts page table entries to a virtual address
+    static void* entries_to_virtual(PageTableEntries entries);
 
-/// Creates a new address space
-PageTable *new_address_space();
+    /// Initializes 4-level paging
+    static void init(bool is_pat_supported);
 
-/// Saves the current context
-void vmm_save_context();
+    /// Maps a virtual address
+    static bool map_pages(PageTable* pml4, void* virt, void* phys, size_t count, int perms);
 
-/// Gives the saved context's pointer
-PageTable **vmm_get_ctx_ptr();
+    /// Unmaps a virtual address
+    static bool unmap_pages(PageTable* pml4, void* virt, size_t count);
 
-/// Restores the context
-void vmm_restore_context();
+    /// Updates a virtual address' permissions
+    static bool update_perms(PageTable* pml4, void* virt, size_t count, int perms);
 
-/// Drops the context
-void vmm_drop_context();
+    /// Maps a huge memory page
+    static bool map_huge_pages(PageTable* pml4, void* virt, void* phys, size_t count, int perms);
 
-/// Sets the context
-void vmm_set_context(PageTable *ctx);
+    /// Unmaps a huge memory page
+    static bool unmap_huge_pages(PageTable* pml4, void* virt, size_t count);
 
-/// Gives the current context
-PageTable *vmm_get_current_context();
+    /// Updates a huge memory page's virtual address' permissions
+    static bool update_huge_perms(PageTable* pml4, void* virt, size_t count, int perms);
 
-int vmm_to_flags(int flags);
+    /// Gets physical address
+    static uintptr_t get_entry(PageTable* pml4, void* virt);
 
-/// Copies the context
-void vmm_ctx_memcpy(PageTable *dst_ctx, void *dst_addr, PageTable *src_ctx, void *src_addr, size_t size);
+    /// Creates a new address space
+    static PageTable* new_address_space();
+
+    /// Saves the current context
+    static void save_context();
+
+    /// Gives the saved context's pointer
+    static PageTable** get_ctx_ptr();
+
+    /// Restores the context
+    static void restore_context();
+
+    /// Drops the context
+    static void drop_context();
+
+    /// Sets the context
+    static void set_context(PageTable* ctx);
+
+    /// Gives the current context
+    static PageTable* get_current_context();
+
+    /// Converts physical memory flags to virtual memory flags
+    static int to_flags(int flags);
+
+    /// Memcpy but for paging
+    static void ctx_memcpy(PageTable* dst_ctx, void* dst_addr, PageTable* src_ctx, void* src_addr, size_t size);
+};

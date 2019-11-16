@@ -15,9 +15,10 @@ BreakBeforeBraces: Attach
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializersBeforeComma: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
-Cpp11BracedListStyle: 'false'
+Cpp11BracedListStyle: false
 ColumnLimit: 0
-DerivePointerAlignment: true
+DerivePointerAlignment: false
+PointerAlignment: Left
 DisableFormat: false
 IndentCaseLabels: true
 Language: Cpp

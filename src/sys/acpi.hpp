@@ -1,25 +1,35 @@
 #pragma once
 #include <stdint.h>
 
-struct [[gnu::packed]] RsdpDescriptor {
+struct [[gnu::packed]] RSDPDescriptor {
     char signature[8];
     uint8_t checksum;
     char oem_id[6];
     uint8_t revision;
-    uint32_t rsdt_addr;
+    uint32_t rsdt_address;
 };
 
-struct [[gnu::packed]] RsdpDescriptor2 {
-    RsdpDescriptor acpi1;
-    uint32_t len;
+struct [[gnu::packed]] RSDPDescriptor2 {
+    char signature[8];
+    uint8_t checksum;
+    char oem_id[6];
+    uint8_t revision;
+    uint32_t rsdt_address;
+    uint32_t length;
     uint64_t xsdt_address;
     uint8_t extended_checksum;
     uint8_t reserved[3];
 };
 
-struct AcpiSdtHeader {
+struct RSDPInfo {
+    int version;
+    uint64_t rsdp_address;
+    uint64_t address;
+};
+
+struct ACPISDTHeader {
     char signature[4];
-    uint32_t len;
+    uint32_t length;
     uint8_t revision;
     uint8_t checksum;
     char oem_id[6];
@@ -29,9 +39,14 @@ struct AcpiSdtHeader {
     uint32_t creator_revision;
 };
 
-struct Rsdt {
-    AcpiSdtHeader h;
-    uint32_t other_std_ptr[];
+struct RSDT {
+    ACPISDTHeader header;
+    uint32_t other_std[];
+};
+
+struct XSDT {
+    ACPISDTHeader header;
+    uint64_t other_std[];
 };
 
 struct GenericAddress {
@@ -39,15 +54,15 @@ struct GenericAddress {
     uint8_t bit_width;
     uint8_t bit_offset;
     uint8_t access_size;
-    uint64_t addrs;
+    uint64_t base;
 };
 
-struct Fadt {
-    AcpiSdtHeader h;
-    uint32_t firmware_ctrl;
+struct FADT {
+    ACPISDTHeader header;
+    uint32_t firmware_control;
     uint32_t dsdt;
-    uint8_t reserved;  // field used in ACPI 1.0; no longer in use, for compatibility only
-    uint8_t preferred_power_management_profile;
+    uint8_t reserved;
+    uint8_t power_management_profile;
     uint16_t sci_interrupt;
     uint32_t smi_command_port;
     uint8_t acpi_enable;
@@ -62,12 +77,12 @@ struct Fadt {
     uint32_t pm_timer_block;
     uint32_t gpe0_block;
     uint32_t gpe1_block;
-    uint8_t pm1_event_len;
-    uint8_t pm1_control_len;
-    uint8_t pm2_control_len;
-    uint8_t pm_timer_len;
-    uint8_t gpe0_len;
-    uint8_t gpe1_len;
+    uint8_t pm1_event_length;
+    uint8_t pm1_control_length;
+    uint8_t pm2_control_length;
+    uint8_t pm_timer_length;
+    uint8_t gpe0_length;
+    uint8_t gpe1_length;
     uint8_t gpe1_base;
     uint8_t cstate_control;
     uint16_t worst_c2_latency;
@@ -76,20 +91,19 @@ struct Fadt {
     uint16_t flush_stride;
     uint8_t duty_offset;
     uint8_t duty_width;
+    // CMOS registers
     uint8_t day_alarm;
     uint8_t month_alarm;
     uint8_t century;
-    uint16_t boot_architecture_flags;  // reserved in ACPI 1.0; used since ACPI 2.0+
+    // ACPI 2.0+
+    uint16_t boot_architecture_flags;
     uint8_t reserved2;
     uint32_t flags;
     GenericAddress reset_reg;
     uint8_t reset_value;
     uint8_t reserved3[3];
-
-    // 64bit pointers - Available on ACPI 2.0+
     uint64_t x_firmware_control;
     uint64_t x_dsdt;
-
     GenericAddress x_pm1a_event_block;
     GenericAddress x_pm1b_event_block;
     GenericAddress x_pm1a_control_block;
@@ -100,6 +114,14 @@ struct Fadt {
     GenericAddress x_gpe1_block;
 };
 
-void init_acpi();
-inline AcpiSdtHeader *rsdt_search(const char* signature);
-inline RsdpDescriptor *find_rsdp();
+class ACPI {
+private:
+    static RSDPInfo rsdp_info;
+    static inline ACPISDTHeader* bios_rsdt_search(const char* signature);
+    static inline RSDPInfo bios_detect_rsdp(uint64_t base, size_t length);
+    static inline RSDPInfo bios_detect_rsdp();
+    static inline uint8_t bios_calculate_checksum(void* ptr, size_t size);
+
+public:
+    static void init();
+};
