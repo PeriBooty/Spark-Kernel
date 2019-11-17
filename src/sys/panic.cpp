@@ -1,13 +1,13 @@
 #include <hardware/cpu/cpu.hpp>
-#include <hardware/devices/vbe.hpp>
+#include <sys/terminal.hpp>
 #include <sys/panic.hpp>
+#include <lib/lib.hpp>
 
 /// Kernel panic function
 void panic(const char* message) {
     // Draw the text
-    Display::write(":( Sorry, an error has occured.", 0, 16, 0xFFFFFF);
-    Display::write("The OS has stopped to prevent damage to your PC.", 0, 32, 0xFFFFFF);
-    Display::write("Error message:", 0, 64, 0xFFFFFF);
-    Display::write(message, 15 * 8, 64, 0xFFFFFF);
-    CPU::halt_forever();  // Halt the cpu forever
+    Terminal::set_cursor(0, 0);
+    Terminal::write_line("!! KERNEL PANIC OCCURRED !!", 0xFFFFFF, 0x000000);
+    printf("Error message: %s", 0xFFFFFF, 0x000000, message);
+    CentralProcessingUnit::halt_forever();  // Halt the cpu forever
 }

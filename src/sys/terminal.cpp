@@ -7,25 +7,27 @@ uint16_t Terminal::y = 0;
 
 /// Handles special characters such as a newline
 bool Terminal::handle_special_characters(const char c) {
-    bool ret = false;
     switch (c) {
         case '\n': {
             y++;
-            ret = true;
-            break;
+            return true;
         }
         case '\t': {
             x += 4;
-            ret = true;
-            break;
+            return true;
         }
         case '\r': {
             x = 0;
-            ret = true;
-            break;
+            return true;
         }
     }
-    return ret;
+
+    return false;
+}
+
+void Terminal::set_cursor(uint16_t x, uint16_t y) {
+    Terminal::x = x;
+    Terminal::y = y;
 }
 
 void Terminal::write(const char* str, uint32_t foreground, uint32_t background) {
@@ -43,7 +45,7 @@ void Terminal::write(const char* str, uint32_t foreground) {
 void Terminal::write(const char c, uint32_t foreground, uint32_t background) {
     if (handle_special_characters(c)) return;
     GraphicsModeInfo mode_info = Display::get_mode_info();
-    x++;
+
     if (x * 8 >= mode_info.width) {
         x = 0;
         y++;
@@ -54,6 +56,7 @@ void Terminal::write(const char c, uint32_t foreground, uint32_t background) {
     }
 
     Display::write(c, x * 8, y * 16, foreground, background);
+    x++;
 }
 
 void Terminal::write(const char c, uint32_t foreground) {

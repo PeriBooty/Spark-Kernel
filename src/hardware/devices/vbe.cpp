@@ -20,6 +20,7 @@ void Display::init(GraphicsModeInfo& gfx_mode_info) {
 void Display::clear(uint32_t color) {
     if (!is_working)
         return;
+
     for (uint32_t y = 0; y < mode_info.height; y++)
         for (uint32_t x = 0; x < mode_info.width; x++)
             set_pixel(x, y, color);
@@ -29,10 +30,12 @@ void Display::clear(uint32_t color) {
 void Display::write(const char c, uint16_t x, uint16_t y, uint32_t color) {
     if (!is_working || c == '\0')
         return;
-    size_t font_off = static_cast<size_t>(c) * display_font.height * display_font.width / 8;
-    for (uint32_t ny = 0; ny < display_font.height; ny++)
-        for (uint32_t nx = 0; nx < display_font.width; nx++)
-            if (display_font.bitmap[font_off + ny] & (1 << (8 - nx)))
+
+    size_t font_off = static_cast<size_t>(c) * 16 * 8 / 8;
+
+    for (uint32_t ny = 0; ny < 16; ny++)
+        for (uint32_t nx = 0; nx < 8; nx++)
+            if (__font_bitmap__[font_off + ny] & (1 << (8 - nx)))
                 set_pixel(x + nx, y + ny, color);
 }
 
@@ -40,8 +43,10 @@ void Display::write(const char c, uint16_t x, uint16_t y, uint32_t color) {
 void Display::write(const char* str, uint16_t x, uint16_t y, uint32_t color) {
     if (!is_working)
         return;
+
     uint32_t ln = strlen(str);
-    for (uint32_t idx = 0; idx < ln; idx++, x += display_font.width)
+
+    for (uint32_t idx = 0; idx < ln; idx++, x += 8)
         write(str[idx], x, y, color);
 }
 
@@ -49,18 +54,22 @@ void Display::write(const char* str, uint16_t x, uint16_t y, uint32_t color) {
 void Display::write(const char c, uint16_t x, uint16_t y, uint32_t color, uint32_t background) {
     if (!is_working || c == '\0' || c == '\n' || c == '\t' || c == '\r')
         return;
-    size_t font_off = static_cast<size_t>(c) * display_font.height * display_font.width / 8;
-    for (uint32_t ny = 0; ny < display_font.height; ny++)
-        for (uint32_t nx = 0; nx < display_font.width; nx++)
-            set_pixel(x + nx, y + ny, display_font.bitmap[font_off + ny] & (1 << (8 - nx)) ? color : background);
+
+    size_t font_off = static_cast<size_t>(c) * 16 * 8 / 8;
+
+    for (uint32_t ny = 0; ny < 16; ny++)
+        for (uint32_t nx = 0; nx < 8; nx++)
+            set_pixel(x + nx, y + ny, __font_bitmap__[font_off + ny] & (1 << (8 - nx)) ? color : background);
 }
 
 /// Writes a string on a position in the screen
 void Display::write(const char* str, uint16_t x, uint16_t y, uint32_t color, uint32_t background) {
     if (!is_working)
         return;
+
     uint32_t ln = strlen(str);
-    for (uint32_t idx = 0; idx < ln; idx++, x += display_font.width)
+
+    for (uint32_t idx = 0; idx < ln; idx++, x += 8)
         write(str[idx], x, y, color, background);
 }
 
@@ -68,6 +77,7 @@ void Display::write(const char* str, uint16_t x, uint16_t y, uint32_t color, uin
 void inline Display::set_pixel(uint16_t x, uint16_t y, uint32_t color) {
     if (!is_working)
         return;
+
     mode_info.framebuffer[(x * 4 + y * mode_info.pitch) / 4] = color;
 }
 

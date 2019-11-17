@@ -114,8 +114,7 @@ struct FADT {
     GenericAddress x_gpe1_block;
 };
 
-class ACPI {
-private:
+class AdvancedConfigurationAndPowerInterface {
     static RSDPInfo rsdp_info;
     static inline ACPISDTHeader* bios_rsdt_search(const char* signature);
     static inline RSDPInfo bios_detect_rsdp(uint64_t base, size_t length);

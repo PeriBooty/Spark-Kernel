@@ -5,16 +5,16 @@
 #include <sys/panic.hpp>
 #include <sys/terminal.hpp>
 
-RSDPInfo ACPI::rsdp_info = {};
+RSDPInfo AdvancedConfigurationAndPowerInterface::rsdp_info = {};
 
-inline uint8_t ACPI::bios_calculate_checksum(void* ptr, size_t size) {
+inline uint8_t AdvancedConfigurationAndPowerInterface::bios_calculate_checksum(void* ptr, size_t size) {
     uint8_t sum = 0;
     for (size_t i = 0; i < size; i++)
         sum += ((uint8_t*)ptr)[i];
     return sum;
 }
 
-inline RSDPInfo ACPI::bios_detect_rsdp(uint64_t base, size_t length) {
+inline RSDPInfo AdvancedConfigurationAndPowerInterface::bios_detect_rsdp(uint64_t base, size_t length) {
     uint64_t address = base + virtual_physical_base;
     RSDPInfo info{};
 
@@ -45,7 +45,7 @@ inline RSDPInfo ACPI::bios_detect_rsdp(uint64_t base, size_t length) {
     return info;
 }
 
-inline RSDPInfo ACPI::bios_detect_rsdp() {
+inline RSDPInfo AdvancedConfigurationAndPowerInterface::bios_detect_rsdp() {
     RSDPInfo info = bios_detect_rsdp(static_cast<uint64_t>(*reinterpret_cast<uint16_t*>(static_cast<uint64_t>(0x40E) + virtual_physical_base)) << 4, 0x400);
 
     if (!info.version)
@@ -55,7 +55,7 @@ inline RSDPInfo ACPI::bios_detect_rsdp() {
     return info;
 }
 
-inline ACPISDTHeader* ACPI::bios_rsdt_search(const char* signature) {
+inline ACPISDTHeader* AdvancedConfigurationAndPowerInterface::bios_rsdt_search(const char* signature) {
     if (!rsdp_info.version)
         return NULL;
 
@@ -84,10 +84,10 @@ inline ACPISDTHeader* ACPI::bios_rsdt_search(const char* signature) {
     return NULL;
 }
 
-void ACPI::init() {
+void AdvancedConfigurationAndPowerInterface::init() {
     rsdp_info = bios_detect_rsdp();
 
-    printf("[ACPI] Detected ACPI v%d, OEM: %s", rsdp_info.version, reinterpret_cast<RSDPDescriptor*>(rsdp_info.rsdp_address)->oem_id);
+    printf("[ACPI] Detected ACPI v%d, OEM: %s", 0xFFFFFF, Discard{ 0 }, rsdp_info.version, reinterpret_cast<RSDPDescriptor*>(rsdp_info.rsdp_address)->oem_id);
     /*FADT* fadt = reinterpret_cast<FADT*>(bios_rsdt_search("FACP"));
     Port::outb(fadt->smi_command_port, fadt->acpi_enable);
     Terminal::write_line("[ACPI] Waiting for PM1a control block...", 0xFFFFFF);

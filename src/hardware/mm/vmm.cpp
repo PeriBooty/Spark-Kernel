@@ -37,7 +37,7 @@ void VMM::init(bool is_pat_supported) {
     kernel_pml4 = new_address_space();
     set_context(kernel_pml4);
     if (is_pat_supported)
-        CPU::set_msr(0x277, 0x00'00'01'00'00'00'04'06);
+        CentralProcessingUnit::set_msr(0x277, 0x00'00'01'00'00'00'04'06);
 }
 
 /// Gets or allocates a page table entry

@@ -2,11 +2,11 @@
 #include <lib/lib.hpp>
 #include <sys/terminal.hpp>
 
-int printf(const char* format, ...) {
+int printf(const char* format, uint32_t foreground, Discard discard, ...) {
     va_list parameters;
-    va_start(parameters, format);
+    va_start(parameters, discard);
 
-    uint64_t written = 0;
+    uint64_t written = discard.discard = 0;
 
     while (*format != '\0') {
         size_t maxrem = 2147483647 - written;
@@ -16,7 +16,7 @@ int printf(const char* format, ...) {
 
             size_t amount = 0;
             while (format[amount] && format[amount] != '%')
-                Terminal::write(format[amount++], 0xFFFFFF);
+                Terminal::write(format[amount++], foreground);
 
             if (maxrem < amount) {
                 va_end(parameters);
@@ -38,7 +38,7 @@ int printf(const char* format, ...) {
                 return -1;
             }
 
-            Terminal::write(&c, 0xFFFFFF);
+            Terminal::write(&c, foreground);
             va_end(parameters);
 
             written++;
@@ -51,7 +51,7 @@ int printf(const char* format, ...) {
                 va_end(parameters);
                 return -1;
             }
-            Terminal::write(str, 0xFFFFFF);
+            Terminal::write(str, foreground);
 
             written += len;
         } else if (*format == 'i' || *format == 'd') {
@@ -67,7 +67,7 @@ int printf(const char* format, ...) {
                 va_end(parameters);
                 return -1;
             }
-            Terminal::write(str, 0xFFFFFF);
+            Terminal::write(str, foreground);
 
             written += len;
         } else if (*format == 'x') {
@@ -83,7 +83,7 @@ int printf(const char* format, ...) {
                 va_end(parameters);
                 return -1;
             }
-            Terminal::write(str, 0xFFFFFF);
+            Terminal::write(str, foreground);
 
             written += len;
         } else {
@@ -94,13 +94,116 @@ int printf(const char* format, ...) {
                 va_end(parameters);
                 return -1;
             }
-            Terminal::write(format, 0xFFFFFF);
+            Terminal::write(format, foreground);
 
             written += len;
             format += len;
         }
     }
-    Terminal::write("\r\n", 0xFFFFFF);
+    Terminal::write("\r\n", foreground);
+    va_end(parameters);
+    return written;
+}
+
+int printf(const char* format, uint32_t foreground, uint32_t background, ...) {
+    va_list parameters;
+    va_start(parameters, background);
+
+    uint64_t written = 0;
+
+    while (*format != '\0') {
+        size_t maxrem = 2147483647 - written;
+
+        if (format[0] != '%' || format[1] == '%') {
+            if (format[0] == '%') format++;
+
+            size_t amount = 0;
+            while (format[amount] && format[amount] != '%')
+                Terminal::write(format[amount++], foreground, background);
+
+            if (maxrem < amount) {
+                va_end(parameters);
+                return -1;
+            }
+
+            format += amount;
+            written += amount;
+            continue;
+        }
+
+        const char* format_begun_at = format++;
+
+        if (*format == 'c') {
+            format++;
+            char c = static_cast<char>(va_arg(parameters, int));
+            if (!maxrem) {
+                va_end(parameters);
+                return -1;
+            }
+
+            Terminal::write(&c, foreground, background);
+            va_end(parameters);
+
+            written++;
+        } else if (*format == 's') {
+            format++;
+            const char* str = va_arg(parameters, const char*);
+            size_t len = strlen(str);
+
+            if (maxrem < len) {
+                va_end(parameters);
+                return -1;
+            }
+            Terminal::write(str, foreground, background);
+
+            written += len;
+        } else if (*format == 'i' || *format == 'd') {
+            format++;
+            int item = va_arg(parameters, int);
+
+            char str[32] = "";
+
+            itoa(item, str, 10);
+            size_t len = strlen(str);
+
+            if (maxrem < len) {
+                va_end(parameters);
+                return -1;
+            }
+            Terminal::write(str, foreground, background);
+
+            written += len;
+        } else if (*format == 'x') {
+            format++;
+            uint64_t item = va_arg(parameters, uint64_t);
+
+            char str[32] = "";
+
+            htoa(item, str);
+            size_t len = strlen(str);
+
+            if (maxrem < len) {
+                va_end(parameters);
+                return -1;
+            }
+            Terminal::write(str, foreground, background);
+
+            written += len;
+        } else {
+            format = format_begun_at;
+            size_t len = strlen(format);
+
+            if (maxrem < len) {
+                va_end(parameters);
+                return -1;
+            }
+            Terminal::write(format, foreground, background);
+
+            written += len;
+            format += len;
+        }
+    }
+    Terminal::write("\r\n", foreground, background);
     va_end(parameters);
     return written;
 }

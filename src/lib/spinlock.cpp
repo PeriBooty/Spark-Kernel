@@ -3,10 +3,10 @@
 
 /// Locks a spinlock
 void Spinlock::lock() {
-    CPU::atomic_loop_test_and_set(&locked);
+    CentralProcessingUnit::atomic_set(&locked);
 }
 
 /// Releases a spinlock
 void Spinlock::release() {
-    CPU::atomic_unset(&locked);
+    CentralProcessingUnit::atomic_unset(&locked);
 }
