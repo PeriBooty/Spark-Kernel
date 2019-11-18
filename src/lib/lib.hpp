@@ -3,13 +3,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-struct Discard {
-    // yes
-    uint8_t discard;
-};
-
-int printf(const char* format, uint32_t foreground, Discard discard, ...);
-int printf(const char* format, uint32_t foreground, uint32_t background, ...);
+/// Formats a string
+int sprintf(char* text, const char* format, ...);
 
 /// Get if a string exists and the location of the string
 int strncmp(const signed char* s1, const signed char* s2, size_t n);

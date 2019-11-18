@@ -1,11 +1,14 @@
 #pragma once
 
-/// Spinlock struct
-class Spinlock {
-private:
-    volatile int locked;
+namespace Spark {
+    /// Spinlock struct
+    class Spinlock {
+    private:
+        volatile int locked;
 
-public:
-    void lock();
-    void release();
-};
+    public:
+        void lock();
+        void release();
+        ~Spinlock();
+    };
+}  // namespace Spark

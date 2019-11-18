@@ -4,7 +4,7 @@
 #include <lib/lib.hpp>
 #include <lib/spinlock.hpp>
 
-static Spinlock mm_lock{};
+static Spark::Spinlock mm_lock{};
 static uintptr_t top = memory_base;
 
 
@@ -17,12 +17,12 @@ void* malloc(size_t bytes) {
     void* out = reinterpret_cast<void*>(top);
 
     for (size_t i = 0; i < pages; i++) {
-        void* p = Pmm::alloc(1);
+        void* p = Spark::Pmm::alloc(1);
         if (!p) {
             mm_lock.release();
             return NULL;
         }
-        Vmm::map_pages(Vmm::get_current_context(), reinterpret_cast<void*>(top), p, 1, Vmm::to_flags(MemoryFlags::READ | MemoryFlags::WRITE));
+        Spark::Vmm::map_pages(Spark::Vmm::get_current_context(), reinterpret_cast<void*>(top), p, 1, Spark::Vmm::to_flags(MemoryFlags::READ | MemoryFlags::WRITE));
         top += page_size;
     }
 
@@ -75,9 +75,9 @@ int free(void* memory) {
 
     for (size_t i = 0; i < pages; i++) {
         void* curr = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(start) + i * page_size);
-        void* p = reinterpret_cast<void*>(Vmm::get_entry(Vmm::get_current_context(), curr));
-        Vmm::unmap_pages(Vmm::get_current_context(), curr, 1);
-        Pmm::free(p, 1);
+        void* p = reinterpret_cast<void*>(Spark::Vmm::get_entry(Spark::Vmm::get_current_context(), curr));
+        Spark::Vmm::unmap_pages(Spark::Vmm::get_current_context(), curr, 1);
+        Spark::Pmm::free(p, 1);
     }
     mm_lock.release();
     return 1;

@@ -2,49 +2,56 @@
 #include <lib/lib.hpp>
 #include <sys/terminal.hpp>
 
-uint16_t Terminal::x = 0;
-uint16_t Terminal::y = 0;
+uint16_t x = 0, y = 0;
 
-/// Handles special characters such as a newline
-bool Terminal::handle_special_characters(const char c) {
+bool Spark::Terminal::handle_special_characters(const char c) {
+    bool ret = false;
+
     switch (c) {
         case '\n': {
             y++;
-            return true;
+            ret = true;
+            break;
         }
         case '\t': {
             x += 4;
-            return true;
+            ret = true;
+            break;
         }
         case '\r': {
             x = 0;
-            return true;
+            ret = true;
+            break;
         }
     }
 
-    return false;
+    set_cursor(x, y);
+    return ret;
 }
 
-void Terminal::set_cursor(uint16_t x, uint16_t y) {
-    Terminal::x = x;
-    Terminal::y = y;
+void Spark::Terminal::set_cursor(uint16_t nx, uint16_t ny) {
+    x = nx, y = ny;
 }
 
-void Terminal::write(const char* str, uint32_t foreground, uint32_t background) {
+void Spark::Terminal::write(const char* str, uint32_t foreground, uint32_t background) {
     uint32_t ln = strlen(str);
+
     for (uint32_t idx = 0; idx < ln; idx++)
         write(str[idx], foreground, background);
 }
 
-void Terminal::write(const char* str, uint32_t foreground) {
+void Spark::Terminal::write(const char* str, uint32_t foreground) {
     uint32_t ln = strlen(str);
+
     for (uint32_t idx = 0; idx < ln; idx++)
         write(str[idx], foreground);
 }
 
-void Terminal::write(const char c, uint32_t foreground, uint32_t background) {
-    if (handle_special_characters(c)) return;
-    GraphicsModeInfo mode_info = Display::get_mode_info();
+void Spark::Terminal::write(const char c, uint32_t foreground, uint32_t background) {
+    if (handle_special_characters(c))
+        return;
+
+    Graphics::ModeInfo mode_info = Graphics::get_mode_info();
 
     if (x * 8 >= mode_info.width) {
         x = 0;
@@ -55,13 +62,15 @@ void Terminal::write(const char c, uint32_t foreground, uint32_t background) {
         y = mode_info.height / 16 - 1;
     }
 
-    Display::write(c, x * 8, y * 16, foreground, background);
-    x++;
+    Graphics::write_text(c, x * 8, y * 16, foreground, background);
+    set_cursor(++x, y);
 }
 
-void Terminal::write(const char c, uint32_t foreground) {
-    if (handle_special_characters(c)) return;
-    GraphicsModeInfo mode_info = Display::get_mode_info();
+void Spark::Terminal::write(const char c, uint32_t foreground) {
+    if (handle_special_characters(c))
+        return;
+
+    Graphics::ModeInfo mode_info = Graphics::get_mode_info();
     if (x * 8 >= mode_info.width) {
         x = 0;
         y++;
@@ -71,16 +80,16 @@ void Terminal::write(const char c, uint32_t foreground) {
         y = mode_info.height / 16 - 1;
     }
 
-    Display::write(c, x * 8, y * 16, foreground);
-    x++;
+    Graphics::write_text(c, x * 8, y * 16, foreground);
+    set_cursor(++x, y);
 }
 
-void Terminal::write_line(const char* str, uint32_t foreground, uint32_t background) {
-    Terminal::write(str, foreground, background);
-    Terminal::write("\r\n", foreground, background);
+void Spark::Terminal::write_line(const char* str, uint32_t foreground, uint32_t background) {
+    write(str, foreground, background);
+    write("\r\n", foreground, background);
 }
 
-void Terminal::write_line(const char* str, uint32_t foreground) {
-    Terminal::write(str, foreground);
-    Terminal::write("\r\n", foreground);
+void Spark::Terminal::write_line(const char* str, uint32_t foreground) {
+    write(str, foreground);
+    write("\r\n", foreground);
 }

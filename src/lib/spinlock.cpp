@@ -2,11 +2,15 @@
 #include <lib/spinlock.hpp>
 
 /// Locks a spinlock
-void Spinlock::lock() {
+void Spark::Spinlock::lock() {
     Cpu::atomic_set(&locked);
 }
 
 /// Releases a spinlock
-void Spinlock::release() {
+void Spark::Spinlock::release() {
     Cpu::atomic_unset(&locked);
+}
+
+Spark::Spinlock::~Spinlock() {
+    release();
 }
