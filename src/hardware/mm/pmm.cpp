@@ -2,20 +2,20 @@
 #include <hardware/mm/pmm.hpp>
 #include <lib/math.hpp>
 
-uint64_t* PMM::bitmap = NULL;  // The bitmap
-size_t PMM::free_pages = 0;    // Total free pages
-size_t PMM::total_pages = 0;   // Total pages
-size_t PMM::bitmap_len = 64;   // Count of bitmaps
+uint64_t* Pmm::bitmap = NULL;  // The bitmap
+size_t Pmm::free_pages = 0;    // Total free pages
+size_t Pmm::total_pages = 0;   // Total pages
+size_t Pmm::bitmap_len = 64;   // Count of bitmaps
 
 
 /// Read bitmap
-bool PMM::bit_read(size_t idx) {
+bool Pmm::bit_read(size_t idx) {
     size_t off = idx / 64, mask = (1 << (idx % 64));
     return (bitmap[off] & mask) == mask;
 }
 
 /// Write to bitmap
-void PMM::bit_write(size_t idx, int bit, size_t count) {
+void Pmm::bit_write(size_t idx, int bit, size_t count) {
     for (; count; count--, idx++) {
         size_t off = idx / 64, mask = (1 << (idx % 64));
         if (bit)
@@ -26,7 +26,7 @@ void PMM::bit_write(size_t idx, int bit, size_t count) {
 }
 
 /// Tells you if a bitmap is free
-bool PMM::bitmap_is_free(size_t idx, size_t count) {
+bool Pmm::bitmap_is_free(size_t idx, size_t count) {
     for (; count; idx++, count--)
         if (bit_read(idx))
             return false;
@@ -34,7 +34,7 @@ bool PMM::bitmap_is_free(size_t idx, size_t count) {
 }
 
 /// Finds available memory on the top
-uintptr_t PMM::find_available_memory_top(MultibootMemoryMap* mmap, size_t mmap_len) {
+uintptr_t Pmm::find_available_memory_top(MultibootMemoryMap* mmap, size_t mmap_len) {
     uintptr_t top = 0;
     for (size_t i = 0; i < mmap_len; i++)
         if (mmap[i].type == MultibootMemoryState::AVAILABLE)
@@ -44,7 +44,7 @@ uintptr_t PMM::find_available_memory_top(MultibootMemoryMap* mmap, size_t mmap_l
 }
 
 /// Initializes physical memory management
-void PMM::init(MultibootMemoryMap* mmap, size_t mmap_len) {
+void Pmm::init(MultibootMemoryMap* mmap, size_t mmap_len) {
     uintptr_t mem_top = find_available_memory_top(mmap, mmap_len);
     uint32_t mem_pages = (mem_top + page_size - 1) / page_size;
     bitmap = reinterpret_cast<uint64_t*>(memory_base + virtual_physical_base);
@@ -83,7 +83,7 @@ void PMM::init(MultibootMemoryMap* mmap, size_t mmap_len) {
 }
 
 /// Allocates memory by given alignment and upper memory
-void* PMM::alloc(size_t count, size_t alignment, uintptr_t upper) {
+void* Pmm::alloc(size_t count, size_t alignment, uintptr_t upper) {
     size_t idx = memory_base / page_size, max_idx = 0;
 
     max_idx = !upper ? bitmap_len : bitmap_len < (upper / page_size) ? bitmap_len : (upper / page_size);
@@ -103,12 +103,12 @@ void* PMM::alloc(size_t count, size_t alignment, uintptr_t upper) {
 }
 
 /// Allocates memory
-void* PMM::alloc(size_t count) {
+void* Pmm::alloc(size_t count) {
     return alloc(count, 1, 0);
 }
 
 /// Frees memory
-void PMM::free(void* mem, size_t count) {
+void Pmm::free(void* mem, size_t count) {
     size_t idx = reinterpret_cast<size_t>(mem) / page_size;
     bit_write(idx, 0, count);
     free_pages += count;

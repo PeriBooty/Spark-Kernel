@@ -28,7 +28,7 @@ struct PageTableEntries {
     size_t pt;
 };
 
-class VMM {
+class Vmm {
 private:
     /// The kernel's PML4
     static PageTable* kernel_pml4;

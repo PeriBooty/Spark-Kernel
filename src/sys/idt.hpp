@@ -1,7 +1,7 @@
 #pragma once
 
 /// Interrupt Descriptor Table entry struct
-struct [[gnu::packed]] InterruptDescriptorTableEntry {
+struct [[gnu::packed]] IdtEntry {
     uint16_t offset_low;
     uint16_t selector;
     uint8_t ist;
@@ -12,16 +12,15 @@ struct [[gnu::packed]] InterruptDescriptorTableEntry {
 };
 
 /// Interrupt Descriptor Table pointer
-struct [[gnu::packed]] InterruptDescriptorTablePointer {
+struct [[gnu::packed]] IdtPointer {
     uint16_t limit;
     uint64_t base;
 };
 
-class InterruptDescriptorTable {
+class Idt {
 private:
-    static InterruptDescriptorTableEntry idt_entries[256];  // Interrupt Descriptor Table
-    static InterruptDescriptorTablePointer idt_pointer;     // Interrupt Descriptor Table pointer
-    static int ticks;                  // PIT total ticks
+    static IdtEntry idt_entries[256];  // Interrupt Descriptor Table
+    static IdtPointer idt_pointer;     // Interrupt Descriptor Table pointer
 public:
     /// Initializes the Interrupt Descriptor Table
     static void init();

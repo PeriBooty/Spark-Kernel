@@ -1,14 +1,14 @@
+#include <hardware/devices/vbe.hpp>
 #include <hardware/port.hpp>
 #include <lib/lib.hpp>
 #include <sys/idt.hpp>
 #include <sys/terminal.hpp>
 
-InterruptDescriptorTableEntry InterruptDescriptorTable::idt_entries[256]{};  // Interrupt Descriptor Table
-InterruptDescriptorTablePointer InterruptDescriptorTable::idt_pointer{};     // Interrupt Descriptor Table pointer
-int InterruptDescriptorTable::ticks = 0;                // PIT total ticks
+IdtEntry Idt::idt_entries[256]{};  // Interrupt Descriptor Table
+IdtPointer Idt::idt_pointer{};     // Interrupt Descriptor Table pointer
 
 /// Initializes the Interrupt Descriptor Table
-void InterruptDescriptorTable::init() {
+void Idt::init() {
     // Remap PIC
     Port::outb(0x20, 0x11);
     Port::wait();
@@ -37,9 +37,9 @@ void InterruptDescriptorTable::init() {
 
     set_gate(32, reinterpret_cast<uintptr_t>(irq0), 0x08, 0x8E);  // Set callback for IRQ 0
     set_gate(33, reinterpret_cast<uintptr_t>(irq1), 0x08, 0x8E);  // Set callback for IRQ 1
-    pit_set_frequency(10000);                                     // Set PIT frequency to 1MHz
+    pit_set_frequency(10000);
     Terminal::write_line("[PIT] Set frequency to 1MHz", 0xFFFFFF);
-    idt_pointer.limit = 256 * sizeof(InterruptDescriptorTableEntry) - 1;               // Set Interrupt Descriptor Table pointer size
+    idt_pointer.limit = 256 * sizeof(IdtEntry) - 1;               // Set Interrupt Descriptor Table pointer size
     idt_pointer.base = reinterpret_cast<uint64_t>(&idt_entries);  // Set Interrupt Descriptor Table pointer address
     asm volatile("lidt %0" ::"m"(idt_pointer));                   // Load Interrupt Descriptor Table pointer
     asm volatile("sti");                                          // Enable interrupts
@@ -47,7 +47,7 @@ void InterruptDescriptorTable::init() {
 }
 
 /// Adds a callback for an interrupt
-void InterruptDescriptorTable::set_gate(uint8_t vec, uintptr_t function, uint16_t selector, uint8_t flags) {
+void Idt::set_gate(uint8_t vec, uintptr_t function, uint16_t selector, uint8_t flags) {
     idt_entries[vec].offset_low = function & 0xFFFF;               // Set low offset
     idt_entries[vec].offset_mid = (function >> 16) & 0xFFFF;       // Set middle offset
     idt_entries[vec].offset_high = (function >> 32) & 0xFFFFFFFF;  // Set high offset
@@ -58,7 +58,7 @@ void InterruptDescriptorTable::set_gate(uint8_t vec, uintptr_t function, uint16_
 }
 
 /// Sends to the PIC master and/or the slave an << END OF INTERRUPT >>
-void InterruptDescriptorTable::irq_eoi(uint8_t irq) {
+void Idt::irq_eoi(uint8_t irq) {
     if (irq >= 8)
         Port::outb(0xA0, 0x20);  // If IRQ number is more than 8, send << END OF INTERRUPT >> to slave PIC
 
@@ -66,7 +66,7 @@ void InterruptDescriptorTable::irq_eoi(uint8_t irq) {
 }
 
 // Masks/Disables an IRQ
-void InterruptDescriptorTable::mask_irq(uint8_t irq) {
+void Idt::mask_irq(uint8_t irq) {
     uint16_t port = 0x21;  // Default port is master PIC
 
     // If IRQ number is more than 8, send command to slave PIC
@@ -79,7 +79,7 @@ void InterruptDescriptorTable::mask_irq(uint8_t irq) {
 }
 
 // Unmasks/Enables an IRQ
-void InterruptDescriptorTable::unmask_irq(uint8_t irq) {
+void Idt::unmask_irq(uint8_t irq) {
     uint16_t port = 0x21;  // Default port is master PIC
 
     // If IRQ number is more than 8, send command to slave PIC
@@ -92,7 +92,7 @@ void InterruptDescriptorTable::unmask_irq(uint8_t irq) {
 }
 
 /// Changes the PIT's frequency
-void InterruptDescriptorTable::pit_set_frequency(uint32_t frequency) {
+void Idt::pit_set_frequency(uint32_t frequency) {
     uint32_t divisor = 1193182 / frequency;
 
     Port::outb(0x43, 0x36);
@@ -102,14 +102,14 @@ void InterruptDescriptorTable::pit_set_frequency(uint32_t frequency) {
     Port::outb(0x40, static_cast<uint8_t>((divisor >> 8)));
 }
 
+// IRQ0/PIT interrupt handler, called by boot.asm
+extern "C" void pit_handler() {
+    Display::update();
+    Idt::irq_eoi(0);
+}
+
 // IRQ1/Keyboard interrupt handler, called by boot.asm
 extern "C" void irq1_handler() {
     //uint8_t scancode = Port::inb(0x60); // Poll scancode
-    InterruptDescriptorTable::irq_eoi(1);
-}
-
-// IRQ0/PIT interrupt handler, called by boot.asm
-extern "C" void pit_handler() {
-    // Do nothing
-    InterruptDescriptorTable::irq_eoi(0);
+    Idt::irq_eoi(1);
 }

@@ -8,7 +8,7 @@ GraphicsModeInfo Display::mode_info{};  // Mode info is empty
 bool Display::is_working = false;       // Display is initially not working of course
 
 /// Initializes the display
-void Display::init(GraphicsModeInfo& gfx_mode_info) {
+void Display::init(GraphicsModeInfo gfx_mode_info) {
     is_working = false;
     Display::mode_info = gfx_mode_info;
     is_working = true;
@@ -31,7 +31,7 @@ void Display::write(const char c, uint16_t x, uint16_t y, uint32_t color) {
     if (!is_working || c == '\0')
         return;
 
-    size_t font_off = static_cast<size_t>(c) * 16 * 8 / 8;
+    size_t font_off = c * 16;
 
     for (uint32_t ny = 0; ny < 16; ny++)
         for (uint32_t nx = 0; nx < 8; nx++)
@@ -55,7 +55,7 @@ void Display::write(const char c, uint16_t x, uint16_t y, uint32_t color, uint32
     if (!is_working || c == '\0' || c == '\n' || c == '\t' || c == '\r')
         return;
 
-    size_t font_off = static_cast<size_t>(c) * 16 * 8 / 8;
+    size_t font_off = c * 16;
 
     for (uint32_t ny = 0; ny < 16; ny++)
         for (uint32_t nx = 0; nx < 8; nx++)
@@ -74,13 +74,17 @@ void Display::write(const char* str, uint16_t x, uint16_t y, uint32_t color, uin
 }
 
 /// Sets a pixel in the display
-void inline Display::set_pixel(uint16_t x, uint16_t y, uint32_t color) {
+inline void Display::set_pixel(uint16_t x, uint16_t y, uint32_t color) {
     if (!is_working)
         return;
 
-    mode_info.framebuffer[(x * 4 + y * mode_info.pitch) / 4] = color;
+    mode_info.backbuffer[(x * 4 + y * mode_info.pitch) / (mode_info.bpp / 8)] = color;
 }
 
 GraphicsModeInfo Display::get_mode_info() {
     return mode_info;
+}
+
+void Display::update() {
+    memcpy(mode_info.framebuffer, mode_info.backbuffer, mode_info.width * mode_info.pitch);
 }

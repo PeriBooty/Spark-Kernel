@@ -9,5 +9,5 @@ void panic(const char* message) {
     Terminal::set_cursor(0, 0);
     Terminal::write_line("!! KERNEL PANIC OCCURRED !!", 0xFFFFFF, 0x000000);
     printf("Error message: %s", 0xFFFFFF, 0x000000, message);
-    CentralProcessingUnit::halt_forever();  // Halt the cpu forever
+    //Cpu::halt_forever();  // Halt the cpu forever
 }

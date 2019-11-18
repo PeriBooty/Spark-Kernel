@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <multiboot.hpp>
 
-class PMM {
+class Pmm {
 private:
     /// The bitmap
     static uint64_t* bitmap;

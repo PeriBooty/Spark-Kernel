@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 
-class CentralProcessingUnit {
+class Cpu {
 public:
     /// Checks if CPU PAT MSR is supported
     static bool check_pat();

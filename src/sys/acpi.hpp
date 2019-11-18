@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 
-struct [[gnu::packed]] RSDPDescriptor {
+struct [[gnu::packed]] RsdpDescriptor {
     char signature[8];
     uint8_t checksum;
     char oem_id[6];
@@ -9,7 +9,7 @@ struct [[gnu::packed]] RSDPDescriptor {
     uint32_t rsdt_address;
 };
 
-struct [[gnu::packed]] RSDPDescriptor2 {
+struct [[gnu::packed]] RsdpDescriptor2 {
     char signature[8];
     uint8_t checksum;
     char oem_id[6];
@@ -21,13 +21,13 @@ struct [[gnu::packed]] RSDPDescriptor2 {
     uint8_t reserved[3];
 };
 
-struct RSDPInfo {
+struct RsdpInfo {
     int version;
     uint64_t rsdp_address;
     uint64_t address;
 };
 
-struct ACPISDTHeader {
+struct AcpiSdtHeader {
     char signature[4];
     uint32_t length;
     uint8_t revision;
@@ -39,13 +39,13 @@ struct ACPISDTHeader {
     uint32_t creator_revision;
 };
 
-struct RSDT {
-    ACPISDTHeader header;
+struct Rsdt {
+    AcpiSdtHeader header;
     uint32_t other_std[];
 };
 
-struct XSDT {
-    ACPISDTHeader header;
+struct Xsdt {
+    AcpiSdtHeader header;
     uint64_t other_std[];
 };
 
@@ -57,8 +57,8 @@ struct GenericAddress {
     uint64_t base;
 };
 
-struct FADT {
-    ACPISDTHeader header;
+struct Fadt {
+    AcpiSdtHeader header;
     uint32_t firmware_control;
     uint32_t dsdt;
     uint8_t reserved;
@@ -114,11 +114,11 @@ struct FADT {
     GenericAddress x_gpe1_block;
 };
 
-class AdvancedConfigurationAndPowerInterface {
-    static RSDPInfo rsdp_info;
-    static inline ACPISDTHeader* bios_rsdt_search(const char* signature);
-    static inline RSDPInfo bios_detect_rsdp(uint64_t base, size_t length);
-    static inline RSDPInfo bios_detect_rsdp();
+class Acpi {
+    static RsdpInfo rsdp_info;
+    static inline AcpiSdtHeader* bios_rsdt_search(const char* signature);
+    static inline RsdpInfo bios_detect_rsdp(uint64_t base, size_t length);
+    static inline RsdpInfo bios_detect_rsdp();
     static inline uint8_t bios_calculate_checksum(void* ptr, size_t size);
 
 public:

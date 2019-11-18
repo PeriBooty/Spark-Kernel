@@ -4,10 +4,12 @@
 
 /// Graphics mode info struct
 struct GraphicsModeInfo {
+    uint32_t* backbuffer;
     uint32_t* framebuffer;
     uint32_t pitch;
     uint32_t width;
     uint32_t height;
+    uint8_t bpp;
 };
 
 /// Display class/namespace
@@ -24,7 +26,7 @@ private:
 
 public:
     /// Initializes the display
-    static void init(GraphicsModeInfo& gfx_mode_info);
+    static void init(GraphicsModeInfo gfx_mode_info);
 
     /// Clears the display with a specific color
     static void clear(uint32_t color);
@@ -42,6 +44,7 @@ public:
     static void write(const char* str, uint16_t x, uint16_t y, uint32_t color, uint32_t background);
 
     /// Sets a pixel in the display
-    static void inline set_pixel(uint16_t x, uint16_t y, uint32_t color);
+    static inline void set_pixel(uint16_t x, uint16_t y, uint32_t color);
     static GraphicsModeInfo get_mode_info();
+    static void update();
 };
