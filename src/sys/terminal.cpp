@@ -30,7 +30,8 @@ bool Spark::Terminal::handle_special_characters(const char c) {
 }
 
 void Spark::Terminal::set_cursor(uint16_t nx, uint16_t ny) {
-    x = nx, y = ny;
+    x = nx;
+    y = ny;
 }
 
 void Spark::Terminal::write(const char* str, uint32_t foreground, uint32_t background) {

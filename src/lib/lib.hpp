@@ -3,44 +3,93 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/// Formats a string
+/**
+ * @brief Formats a string
+ * 
+ * @param text 
+ * @param format 
+ * @param ... 
+ * @return int 
+ */
 int sprintf(char* text, const char* format, ...);
 
-/// Get if a string exists and the location of the string
-int strncmp(const signed char* s1, const signed char* s2, size_t n);
+/**
+ * @brief Get if a string exists and the location of the string
+ * 
+ * @param char 
+ * @param char 
+ * @param n 
+ * @return int 
+ */
+int strncmp(const char* str1, const char* str2, size_t len);
 
-/// Get length of string
+/**
+ * @brief Get length of string
+ * 
+ * @return size_t 
+ */
 size_t strlen(const char*);
 
-/// Get length of string
-size_t strlen(const char16_t*);
-
-/// Get length of string until max length
+/**
+ * @brief Get length of string until max length
+ * 
+ * @param chr 
+ * @param max_len 
+ * @return size_t 
+ */
 size_t strnlen(const char* chr, size_t max_len);
 
-/// Get length of string until max length
-size_t strnlen(const char16_t* chr, size_t max_len);
-
-/// Converts an integer to a string
+/**
+ * @brief Converts an integer to a string
+ * 
+ * @param value 
+ * @param result 
+ * @param base 
+ * @return char* 
+ */
 char* itoa(int value, char* result, int base);
 
+/**
+ * @brief Converts hex to a string
+ * 
+ * @param n 
+ * @param str 
+ */
 void htoa(int64_t n, char* str);
 
-/// Copy
+/**
+ * @brief Copy
+ * 
+ * @tparam InputIt 
+ * @tparam OutputIt 
+ * @param first 
+ * @param last 
+ * @param d_first 
+ * @return OutputIt 
+ */
 template <class InputIt, class OutputIt>
 OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
-    while (first != last) {
+    for (; first != last; first++)
         *d_first++ = *first++;
-    }
     return d_first;
 }
 
-/// Copy with condition
+/**
+ * @brief Copy with condition
+ * 
+ * @tparam InputIt 
+ * @tparam OutputIt 
+ * @tparam UnaryPredicate 
+ * @param first 
+ * @param last 
+ * @param d_first 
+ * @param pred 
+ * @return OutputIt 
+ */
 template <class InputIt, class OutputIt, class UnaryPredicate>
 OutputIt copy_if(InputIt first, InputIt last, OutputIt d_first, UnaryPredicate pred) {
-    while (first != last) {
-        if (pred(*first)) *d_first++ = *first;
-        first++;
-    }
+    for (; first != last; first++)
+        if (pred(*first))
+            *d_first++ = *first;
     return d_first;
 }

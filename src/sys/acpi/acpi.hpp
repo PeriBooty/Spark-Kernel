@@ -11,25 +11,21 @@ namespace Spark::Acpi {
     };
 
     struct [[gnu::packed]] RsdpDescriptor2 {
-        char signature[8];
-        uint8_t checksum;
-        char oem_id[6];
-        uint8_t revision;
-        uint32_t rsdt_address;
+        RsdpDescriptor rsdp;
         uint32_t length;
         uint64_t xsdt_address;
         uint8_t extended_checksum;
         uint8_t reserved[3];
     };
 
-    struct RsdpInfo {
+    struct [[gnu::packed]] RsdpInfo {
         int version;
         uint64_t rsdp_address;
         uint64_t address;
         char oem_id[7];
     };
 
-    struct AcpiSdtHeader {
+    struct [[gnu::packed]] SdtHeader {
         char signature[4];
         uint32_t length;
         uint8_t revision;
@@ -41,17 +37,55 @@ namespace Spark::Acpi {
         uint32_t creator_revision;
     };
 
-    struct Rsdt {
-        AcpiSdtHeader header;
+    enum InterruptControllerType {
+        LAPIC = 0,
+        IO_APIC = 1,
+        INTERRUPT_SOURCE_OVERRIDE = 2,
+        NMI_SOURCE = 3,
+        LAPIC_NMI = 4,
+        LAPIC_ADDRESS_OVERRIDE = 5,
+        IO_SAPIC = 6,
+        LOCAL_SAPIC = 7,
+        PLATFORM_INTERRUPT_SOURCES = 8,
+        PROCESSOR_LOCAL_X2APIC = 9,
+        LOCAL_X2APIC_NMI = 10,
+        GICC = 11,
+        GICD = 12,
+        GIC_MSI_FRAME = 13,
+        GICR = 14,
+        ITS = 15,
+    };
+
+    struct [[gnu::packed]] InterruptController {
+        uint8_t type;
+        uint8_t length;
+    };
+
+    struct [[gnu::packed]] LocalApic {
+        InterruptController ic;
+        uint8_t uid;
+        uint8_t id;
+        uint32_t flags;
+    };
+
+    struct [[gnu::packed]] Madt {
+        SdtHeader header;
+        uint32_t apic_address;
+        uint32_t flags;
+        InterruptController interrupt_controllers[];
+    };
+
+    struct [[gnu::packed]] Rsdt {
+        SdtHeader header;
         uint32_t other_std[];
     };
 
-    struct Xsdt {
-        AcpiSdtHeader header;
+    struct [[gnu::packed]] Xsdt {
+        SdtHeader header;
         uint64_t other_std[];
     };
 
-    struct GenericAddress {
+    struct [[gnu::packed]] GenericAddress {
         uint8_t address_space;
         uint8_t bit_width;
         uint8_t bit_offset;
@@ -59,8 +93,8 @@ namespace Spark::Acpi {
         uint64_t base;
     };
 
-    struct Fadt {
-        AcpiSdtHeader header;
+    struct [[gnu::packed]] Fadt {
+        SdtHeader header;
         uint32_t firmware_control;
         uint32_t dsdt;
         uint8_t reserved;
@@ -116,5 +150,9 @@ namespace Spark::Acpi {
         GenericAddress x_gpe1_block;
     };
 
+    /**
+     * @brief Initializes ACPI
+     * 
+     */
     void init();
 };  // namespace Spark::Acpi

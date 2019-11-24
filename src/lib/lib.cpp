@@ -15,6 +15,7 @@ int sprintf(char* text, const char* format, ...) {
                 format++;
 
             size_t amount = 0;
+
             for (; format[amount] && format[amount] != '%'; amount++)
                 text[amount] = format[amount];
 
@@ -33,7 +34,8 @@ int sprintf(char* text, const char* format, ...) {
 
         if (*format == 'c') {
             format++;
-            char c = static_cast<char>(va_arg(parameters, int));
+            char c = (char)va_arg(parameters, int);
+
             if (!maxrem) {
                 va_end(parameters);
                 return -1;
@@ -90,7 +92,7 @@ int sprintf(char* text, const char* format, ...) {
             }
 
             for (size_t i = 0; i < len; i++)
-                text[written + i] = str[i];
+                text[i] = str[i];
 
             text += len;
             written += len;
@@ -102,6 +104,7 @@ int sprintf(char* text, const char* format, ...) {
                 va_end(parameters);
                 return -1;
             }
+
             for (size_t i = 0; i < len; i++)
                 text[i] = format[i];
 
@@ -114,55 +117,61 @@ int sprintf(char* text, const char* format, ...) {
     return written;
 }
 
-int strncmp(const signed char* s1, const signed char* s2, size_t n) {
-    for (; n && *s1 && (*s1 == *s2); ++s1, ++s2, --n)
-        ;
-    return !n ? 0 : (*s1 - *s2);
+int strncmp(const char* str1, const char* str2, size_t len) {
+    size_t i = 0;
+
+    while (i < len - 1 && str1[i] == str2[i])
+        i++;
+
+    return str1[i] - str2[i];
 }
 
 size_t strlen(const char* chr) {
     size_t size = 0;
-    while (*chr++)
-        size++;
-    return size;
-}
 
-size_t strlen(const char16_t* chr) {
-    size_t size = 0;
     while (*chr++)
         size++;
+
     return size;
 }
 
 size_t strnlen(const char* chr, size_t max_len) {
     size_t size = 0;
-    for (; (size < max_len) && chr[size]; ++size)
-        ;
-    return size;
-}
 
-size_t strnlen(const char16_t* chr, size_t max_len) {
-    size_t size = 0;
-    for (; (size < max_len) && chr[size]; ++size)
-        ;
+    while ((size < max_len) && chr[size])
+        ++size;
+
     return size;
 }
 
 char* itoa(int value, char* result, int base) {
-    if (base < 2 || base > 36)
-        return &(*result = '\0');
-    char *ptr = result, *ptr1 = result, tmp_char;
-    int tmp_value;
+    if (base < 2 || base > 36) {
+        *result = '\0';
+        return result;
+    }
+
+    char *rc = result, *ptr, *low;
+    rc = ptr = result;
+
+    if (value < 0 && base == 10)
+        *ptr++ = '-';
+
+    low = ptr;
+
     do {
-        tmp_value = value;
+        *ptr++ = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz"[35 + value % base];
         value /= base;
-        *ptr++ = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz"[35 + (tmp_value - value * base)];
     } while (value);
-    if (tmp_value < 0) *ptr++ = '-';
+
     *ptr-- = '\0';
-    for (; ptr1 < ptr; tmp_char = *ptr, *ptr-- = *ptr1, *ptr1++ = tmp_char)
-        ;
-    return result;
+
+    char tmp = *low;
+    while (low < ptr) {
+        *low++ = *ptr;
+        *ptr-- = tmp;
+    }
+
+    return rc;
 }
 
 void htoa(int64_t n, char* str) {
@@ -174,11 +183,14 @@ void htoa(int64_t n, char* str) {
 
     for (int i = 60; i > 0; i -= 4) {
         tmp = (n >> i) & 0xF;
+
         if (tmp == 0 && zeros == 0)
             continue;
+
         zeros -= 1;
         *str++ = tmp >= 0xA ? tmp - 0xA + 'a' : tmp + '0';
     }
+
     tmp = n & 0xF;
     *str++ = tmp >= 0xA ? tmp - 0xA + 'a' : tmp + '0';
 }

@@ -1,14 +1,13 @@
 #include <cpuid.h>
 #include <hardware/cpu/cpu.hpp>
 
-/// Checks if CPU PAT MSR is supported
-bool Spark::Cpu::check_pat() {
+bool Spark::Cpu::check_msr(uint32_t flag) {
     uint32_t a, b, c, d;
     __cpuid(1, a, b, c, d);
-    return d & (1 << 16);
+
+    return d & flag;
 }
 
-/// Halts CPU forever
 void Spark::Cpu::halt_forever() {
     asm volatile(
         "cli\n"
@@ -20,14 +19,6 @@ void Spark::Cpu::halt_forever() {
         : "memory");
 }
 
-// Sets MSR
-void Spark::Cpu::set_msr(uint32_t msr, uint64_t value) {
-    asm volatile("wrmsr"
-                 :
-                 : "a"(static_cast<uint32_t>(value)), "d"(static_cast<uint32_t>(value >> 32)), "c"(msr));
-}
-
-/// Locks and waits for release of int var pointer
 void Spark::Cpu::atomic_set(volatile int* var) {
     asm volatile(
         "1:\n\t"
@@ -41,7 +32,6 @@ void Spark::Cpu::atomic_set(volatile int* var) {
         : "memory", "cc");
 }
 
-/// Releases int var pointer
 void Spark::Cpu::atomic_unset(volatile int* var) {
     asm volatile("lock btr $0, %0\n\t"
                  : "+m"(*var)

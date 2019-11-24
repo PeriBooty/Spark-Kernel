@@ -3,10 +3,13 @@
 #include <stdint.h>
 
 namespace Spark::Vmm {
-    constexpr inline size_t flag_mask = 0xFFF;
+    constexpr inline size_t flag_mask = 0xFFF | (1ull << 63);
     constexpr inline size_t address_mask = ~(flag_mask);
 
-    /// The virtual memory flags
+    /**
+     * @brief The virtual memory flags
+     * 
+     */
     enum VirtualMemoryFlags {
         VMM_PRESENT = 1 << 0,
         VMM_WRITE = 1 << 1,
@@ -17,12 +20,18 @@ namespace Spark::Vmm {
         VMM_LARGE = 1 << 7,
     };
 
-    /// The page table struct
+    /**
+     * @brief Page table definition
+     * 
+     */
     struct PageTable {
         uint64_t ents[512];
     };
 
-    /// The page table entries struct
+    /**
+     * @brief Page table entries for 4-level paging definition
+     * 
+     */
     struct PageTableEntries {
         size_t pml4;
         size_t pdp;
@@ -30,60 +39,152 @@ namespace Spark::Vmm {
         size_t pt;
     };
 
-    /// Converts virtual address to page table entries
+    /**
+     * @brief Converts virtual address to page table entries
+     * 
+     * @param virt the virtual address
+     * @return PageTableEntries 
+     */
     PageTableEntries virtual_to_entries(void* virt);
 
-    /// Converts page table entries to a virtual address
+    /**
+     * @brief Converts page table entries to a virtual address
+     * 
+     * @param entries 
+     * @return void* 
+     */
     void* entries_to_virtual(PageTableEntries entries);
 
-    /// Initializes 4-level paging
-    void init(bool is_pat_supported);
+    /**
+     * @brief Initializes 4-level paging
+     * 
+     */
+    void init();
 
-    /// Maps a virtual address
+    /**
+     * @brief Maps a virtual address
+     * 
+     * @param pml4 
+     * @param virt 
+     * @param phys 
+     * @param count 
+     * @param perms 
+     * @return true 
+     * @return false 
+     */
     bool map_pages(PageTable* pml4, void* virt, void* phys, size_t count, int perms);
 
-    /// Unmaps a virtual address
+    /**
+     * @brief Unmaps a virtual address
+     * 
+     * @param pml4 
+     * @param virt 
+     * @param count 
+     * @return true 
+     * @return false 
+     */
     bool unmap_pages(PageTable* pml4, void* virt, size_t count);
 
-    /// Updates a virtual address' permissions
+    /**
+     * @brief Updates a virtual address' permissions
+     * 
+     * @param pml4 
+     * @param virt 
+     * @param count 
+     * @param perms 
+     * @return true 
+     * @return false 
+     */
     bool update_perms(PageTable* pml4, void* virt, size_t count, int perms);
 
-    /// Maps a huge memory page
+    /**
+     * @brief Maps huge memory pages
+     * 
+     * @param pml4 
+     * @param virt 
+     * @param phys 
+     * @param count 
+     * @param perms 
+     * @return true 
+     * @return false 
+     */
     bool map_huge_pages(PageTable* pml4, void* virt, void* phys, size_t count, int perms);
 
-    /// Unmaps a huge memory page
+    /**
+     * @brief Unmaps huge memory pages
+     * 
+     * @param pml4 
+     * @param virt 
+     * @param count 
+     * @return true 
+     * @return false 
+     */
     bool unmap_huge_pages(PageTable* pml4, void* virt, size_t count);
 
-    /// Updates a huge memory page's virtual address' permissions
+    /**
+     * @brief Updates huge memory pages' virtual address' permissions
+     * 
+     * @param pml4 
+     * @param virt 
+     * @param count 
+     * @param perms 
+     * @return true 
+     * @return false 
+     */
     bool update_huge_perms(PageTable* pml4, void* virt, size_t count, int perms);
 
-    /// Gets physical address
+    /**
+     * @brief Gets physical address from 4-level paging entry
+     * 
+     * @param pml4 
+     * @param virt 
+     * @return uintptr_t 
+     */
     uintptr_t get_entry(PageTable* pml4, void* virt);
 
-    /// Creates a new address space
+    /**
+     * @brief Creates a new address space
+     * 
+     * @return PageTable* 
+     */
     PageTable* new_address_space();
 
-    /// Saves the current context
+    /**
+     * @brief Saves the current context
+     * 
+     */
     void save_context();
 
-    /// Gives the saved context's pointer
+    /**
+     * @brief Gives the saved context's pointer
+     * 
+     * @return PageTable** 
+     */
     PageTable** get_ctx_ptr();
 
-    /// Restores the context
+    /**
+     * @brief Restores the context
+     * 
+     */
     void restore_context();
 
-    /// Drops the context
+    /**
+     * @brief Drops the context
+     * 
+     */
     void drop_context();
 
-    /// Sets the context
+    /**
+     * @brief Sets the context
+     * 
+     * @param ctx 
+     */
     void set_context(PageTable* ctx);
 
-    /// Gives the current context
+    /**
+     * @brief Get the current context object
+     * 
+     * @return PageTable* 
+     */
     PageTable* get_current_context();
-
-    /// Converts physical memory flags to virtual memory flags
-    int to_flags(int flags);
-
-    /// Memcpy but for paging
-    void ctx_memcpy(PageTable* dst_ctx, void* dst_addr, PageTable* src_ctx, void* src_addr, size_t size);
 };  // namespace Spark::Vmm

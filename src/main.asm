@@ -7,12 +7,7 @@ CHECKSUM equ -(MAGIC + FLAGS)
 
 KERNEL_VMA equ 0xFFFFFFFF80000000
 
-extern kernel_main
 bits 32
-
-global _loader
-global loader
-loader equ (_loader - KERNEL_VMA)
 
 section .multiboot
 align 64
@@ -31,6 +26,7 @@ mb_header:
     dd 32
 
 section .data
+global init_pml4
 align 0x1000
 init_pml4:
     dq init_pdp1 - KERNEL_VMA + 3
@@ -74,25 +70,25 @@ align 0x1000
 phys_pd:
     gen_pd_2mb 0, 512, 0
 
-section .data
-
 align 0x10
 init_gdt:
     dq 0
     dq 0x00209A0000000000
 init_gdt_end:
 
+global init_gdt_ptr
 init_gdt_ptr:
     dw init_gdt_end - init_gdt - 1
     dq init_gdt - KERNEL_VMA
 
+global init_gdt_ptr_high
 init_gdt_ptr_high:
     dw init_gdt_end - init_gdt - 1
     dq init_gdt
 
 section .text
-
-_loader:
+global loader
+loader:
     cli
     lgdt [init_gdt_ptr - KERNEL_VMA]
     mov esp, stack_end - KERNEL_VMA
@@ -115,110 +111,44 @@ _loader:
     mov cr3, eax
     mov ecx, 0xC0000080
     rdmsr
-    or eax, 0x00000101
+    or eax, 0x00000901
     wrmsr
     mov eax, cr0
     or eax, 0x80000001
     mov cr0, eax
-    jmp 0x08:higher_half_entry
+    jmp 0x08:higher_half_entry - KERNEL_VMA
 
 bits 64
 
-%macro pushfregs 0
-    ; cli , not required since this is an interrupt gate and not a trap gate but it'll show that it's there implicitly
-    push rax
-    push rbx
-    push rcx
-    push rdx
-    push rbp
-    push rsi
-    push rdi
-    push r8
-    push r9
-    push r10
-    push r11
-    push r12
-    push r13
-    push r14
-    push r15
- 
-    mov ax, ds
-    movzx rax, ax
-    push rax
- 
-    mov ax, 0x0
-    mov ds, ax
-    mov es, ax
-   
-    cld
-    mov rdi, rsp
-%endmacro
- 
-%macro popfregs 0
-    pop rax
-    mov ds, ax
-    mov es, ax
- 
-    pop r15
-    pop r14
-    pop r13
-    pop r12
-    pop r11
-    pop r10
-    pop r9
-    pop r8
-    pop rdi
-    pop rsi
-    pop rbp
-    pop rdx
-    pop rcx
-    pop rbx
-    pop rax
-%endmacro
-
-extern irq1_handler
-global irq1
-irq1:
-    pushfregs
-    call irq1_handler
-    popfregs
-    iretq
-
-extern pit_handler
-global irq0
-irq0:
-    pushfregs
-    call pit_handler
-    popfregs
-    iretq
-    
-
-higher_half_entry equ (_higher_half_entry - KERNEL_VMA)
-
-_higher_half_entry:
-    mov rax, _entry
+higher_half_entry:
+    mov rax, entry
     jmp rax
 
-_entry:
+extern kernel_main
+entry:
     lgdt [init_gdt_ptr_high]
     mov ax, 0x0
     mov ds, ax
     mov es, ax
-    mov ss, ax
-    mov gs, ax
     mov fs, ax
+    mov gs, ax
+    mov ss, ax
     add rsp, KERNEL_VMA
     pop rdi
     pop rsi
     call kernel_main
+    cli
     hlt
 
+global stop
 stop:
+    cli
     hlt
 
 section .bss
 align 0x1000
 stack:
     resb 0x10000
-
+    
+global stack_end
 stack_end:

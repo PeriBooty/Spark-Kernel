@@ -4,15 +4,33 @@
 #include <multiboot.hpp>
 
 namespace Spark::Pmm {
-    /// Initializes physical memory management
+    /**
+     * @brief Initializes physical memory management
+     * @param mmap
+     * @param mmap_len
+     */
     void init(Multiboot::MemoryMap* mmap, size_t mmap_len);
 
-    /// Allocates memory by given alignment and upper memory
+    /**
+     * @brief Allocates memory by given alignment and upper memory
+     * @param count
+     * @param alignment
+     * @param upper
+     * @return
+     */
     void* alloc(size_t count, size_t alignment, uintptr_t upper);
 
-    /// Allocates memory
+    /**
+     * @brief Allocates memory
+     * @param count
+     * @return
+     */
     void* alloc(size_t count);
 
-    /// Frees memory
+    /**
+     * @brief Frees memory
+     * @param mem
+     * @param count
+     */
     void free(void* mem, size_t count);
 };  // namespace Spark::Pmm

@@ -4,10 +4,9 @@
 #include <lib/lib.hpp>
 #include <sys/terminal.hpp>
 
-Spark::Graphics::ModeInfo mode_info;  // Mode info is empty
-bool is_working = false;              // Display is initially not working of course
+Spark::Graphics::ModeInfo mode_info; 
+bool is_working = false;
 
-/// Initializes the display
 void Spark::Graphics::init(ModeInfo gfx_mode_info) {
     is_working = false;
     mode_info = gfx_mode_info;
@@ -16,7 +15,6 @@ void Spark::Graphics::init(ModeInfo gfx_mode_info) {
     Spark::Terminal::write_line("[Display] Initialized display successfully", 0xFFFFFF);
 }
 
-/// Clears the display with a specific color
 void Spark::Graphics::clear(uint32_t color) {
     if (!is_working)
         return;
@@ -26,8 +24,7 @@ void Spark::Graphics::clear(uint32_t color) {
             set_pixel(x, y, color);
 }
 
-/// Writes a character on a position in the screen
-void Spark::Graphics::write_text(const char c, uint16_t x, uint16_t y, uint32_t color) {
+void Spark::Graphics::write_text(const char c, uint16_t x, uint16_t y, uint32_t foreground) {
     if (!is_working || c == '\0')
         return;
 
@@ -36,22 +33,20 @@ void Spark::Graphics::write_text(const char c, uint16_t x, uint16_t y, uint32_t 
     for (uint32_t ny = 0; ny < 16; ny++)
         for (uint32_t nx = 0; nx < 8; nx++)
             if (__font_bitmap__[font_off + ny] & (1 << (8 - nx)))
-                set_pixel(x + nx, y + ny, color);
+                set_pixel(x + nx, y + ny, foreground);
 }
 
-/// Writes a string on a position in the screen
-void Spark::Graphics::write_text(const char* str, uint16_t x, uint16_t y, uint32_t color) {
+void Spark::Graphics::write_text(const char* str, uint16_t x, uint16_t y, uint32_t foreground) {
     if (!is_working)
         return;
 
     uint32_t ln = strlen(str);
 
     for (uint32_t idx = 0; idx < ln; idx++, x += 8)
-        write_text(str[idx], x, y, color);
+        write_text(str[idx], x, y, foreground);
 }
 
-/// Writes a character on a position in the screen
-void Spark::Graphics::write_text(const char c, uint16_t x, uint16_t y, uint32_t color, uint32_t background) {
+void Spark::Graphics::write_text(const char c, uint16_t x, uint16_t y, uint32_t foreground, uint32_t background) {
     if (!is_working || c == '\0' || c == '\n' || c == '\t' || c == '\r')
         return;
 
@@ -59,26 +54,25 @@ void Spark::Graphics::write_text(const char c, uint16_t x, uint16_t y, uint32_t 
 
     for (uint32_t ny = 0; ny < 16; ny++)
         for (uint32_t nx = 0; nx < 8; nx++)
-            set_pixel(x + nx, y + ny, __font_bitmap__[font_off + ny] & (1 << (8 - nx)) ? color : background);
+            set_pixel(x + nx, y + ny, __font_bitmap__[font_off + ny] & (1 << (8 - nx)) ? foreground : background);
 }
 
-/// Writes a string on a position in the screen
-void Spark::Graphics::write_text(const char* str, uint16_t x, uint16_t y, uint32_t color, uint32_t background) {
+void Spark::Graphics::write_text(const char* str, uint16_t x, uint16_t y, uint32_t foreground, uint32_t background) {
     if (!is_working)
         return;
 
     uint32_t ln = strlen(str);
 
     for (uint32_t idx = 0; idx < ln; idx++, x += 8)
-        write_text(str[idx], x, y, color, background);
+        write_text(str[idx], x, y, foreground, background);
 }
 
-/// Sets a pixel in the display
 inline void Spark::Graphics::set_pixel(uint16_t x, uint16_t y, uint32_t color) {
     if (!is_working)
         return;
 
-    mode_info.backbuffer[(x * 4 + y * mode_info.pitch) / (mode_info.bpp / 8)] = color;
+    //mode_info.backbuffer[(x * 4 + y * mode_info.pitch) / (mode_info.bpp / 8)] = color;
+    mode_info.framebuffer[(x * 4 + y * mode_info.pitch) / (mode_info.bpp / 8)] = color;
 }
 
 Spark::Graphics::ModeInfo Spark::Graphics::get_mode_info() {

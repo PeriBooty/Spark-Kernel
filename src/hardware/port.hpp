@@ -1,26 +1,58 @@
 #pragma once
 #include <stdint.h>
 
-/// Port class/namespace
 namespace Spark::Port {
-    /// 8bit output to port
+    /**
+     * @brief 8bit output to port
+     * 
+     * @param port 
+     * @param value 
+     */
     void outb(uint16_t port, uint8_t value);
 
-    /// 8bit port input
+    /**
+     * @brief 8bit port input
+     * 
+     * @param port 
+     * @return uint8_t 
+     */
     uint8_t inb(uint16_t port);
 
-    /// 16bit << WORD >> output to port
+    /**
+     * @brief 16bit << WORD >> output to port
+     * 
+     * @param port 
+     * @param value 
+     */
     void outw(uint16_t port, uint16_t value);
 
-    /// 16bit << WORD >> port input
+    /**
+     * @brief 16bit << WORD >> port input
+     * 
+     * @param port 
+     * @return uint16_t 
+     */
     uint16_t inw(uint16_t port);
 
-    /// 32bit << DWORD >> output to port
+    /**
+     * @brief 32bit << DWORD >> output to port
+     * 
+     * @param port 
+     * @param value 
+     */
     void outd(uint16_t port, uint32_t value);
 
-    /// 32bit << DWORD >> port input
+    /**
+     * @brief 32bit << DWORD >> port input
+     * 
+     * @param port 
+     * @return uint32_t 
+     */
     uint32_t ind(uint16_t port);
 
-    /// Waits for I/O to finish
+    /**
+     * @brief Waits for I/O to finish
+     * 
+     */
     void wait();
 };  // namespace Spark::Port

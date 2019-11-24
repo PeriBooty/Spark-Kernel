@@ -10,5 +10,5 @@ void Spark::panic(const char* message) {
     char text[255] = "";
     sprintf(text, "Error message: %s", message);
     Terminal::write_line(text, 0xFFFFFF, 0x000000);
-    //Cpu::halt_forever();  // Halt the cpu forever
+    Cpu::halt_forever();  // Halt the cpu forever
 }
