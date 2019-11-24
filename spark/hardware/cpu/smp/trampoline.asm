@@ -104,4 +104,4 @@ gdt64_ptr:
 
 gdt64_ptr_high:
 	dw gdt64_end - gdt64_start - 1
-	dq gdt64_start + KERNEL_VMA
+	dq gdt64_start + 0xFFFF800000000000

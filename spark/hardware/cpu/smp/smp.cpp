@@ -20,7 +20,8 @@ bool Spark::Cpu::Smp::wait_for_boot() {
 }
 
 void Spark::Cpu::Smp::init() {
-    uint64_t len = (uintptr_t)&_trampoline_start - (uintptr_t)&_trampoline_end;
+    uint64_t len = (uintptr_t)&_trampoline_end - (uintptr_t)&_trampoline_start;
+    
     Vmm::map_pages(Vmm::get_current_context(), &_trampoline_start, &_trampoline_start, (len + page_size - 1) / page_size, Vmm::VirtualMemoryFlags::VMM_PRESENT | Vmm::VirtualMemoryFlags::VMM_WRITE);
     memcpy(&_trampoline_start, (void*)(0x400000 + virtual_physical_base), len);
 }
@@ -38,9 +39,7 @@ void Spark::Cpu::Smp::boot_cpu(CpuEntry cpu) {
         return;
     }
 
-    Apic::LocalApic::send_ipi(cpu.lapic_id, 0x310);
-    Apic::LocalApic::send_ipi(0x500, 0x300);
-    Apic::LocalApic::send_ipi(cpu.lapic_id, 0x310);
+    Apic::LocalApic::send_ipi(cpu.lapic_id, Apic::LocalApic::IcrFlags::TM_LEVEL | Apic::LocalApic::IcrFlags::LEVELASSERT | Apic::LocalApic::IcrFlags::DM_INIT);
     Apic::LocalApic::send_ipi(cpu.lapic_id, Apic::LocalApic::IcrFlags::DM_SIPI | (uint32_t)((uintptr_t)&smp_entry / page_size));
 
     if (!wait_for_boot()) Apic::LocalApic::send_ipi(cpu.lapic_id, Apic::LocalApic::IcrFlags::DM_SIPI | (uint32_t)((uintptr_t)&smp_entry / page_size));
