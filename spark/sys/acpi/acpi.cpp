@@ -105,7 +105,7 @@ void Spark::Acpi::init() {
     size_t table_size = madt->header.length - sizeof(Madt);
     uint64_t list = (uint64_t)madt + sizeof(Madt), offset = 0;
     Apic::LocalApic::init();
-    Cpu::Smp::init();
+    //Cpu::Smp::init();
     while (offset < table_size) {
         InterruptController* interrupt_controller = (InterruptController*)(list + offset);
         if (interrupt_controller->type == InterruptControllerType::LAPIC) {

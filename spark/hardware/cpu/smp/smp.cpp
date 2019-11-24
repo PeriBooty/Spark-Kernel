@@ -21,7 +21,7 @@ bool Spark::Cpu::Smp::wait_for_boot() {
 
 void Spark::Cpu::Smp::init() {
     uint64_t len = (uintptr_t)&_trampoline_end - (uintptr_t)&_trampoline_start;
-    
+
     Vmm::map_pages(Vmm::get_current_context(), &_trampoline_start, &_trampoline_start, (len + page_size - 1) / page_size, Vmm::VirtualMemoryFlags::VMM_PRESENT | Vmm::VirtualMemoryFlags::VMM_WRITE);
     memcpy(&_trampoline_start, (void*)(0x400000 + virtual_physical_base), len);
 }
@@ -30,7 +30,7 @@ void Spark::Cpu::Smp::boot_cpu(CpuEntry cpu) {
     if (cpu.bsp)
         return;
 
-    void* trampoline_stack = malloc(4);
+    trampoline_stack = malloc(4);
     char debug[255] = "";
 
     if (trampoline_stack == nullptr) {

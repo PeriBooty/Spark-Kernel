@@ -10,6 +10,7 @@ namespace Spark::Cpu::Smp {
     extern "C" void* smp_entry;
     extern "C" void* _trampoline_start;
     extern "C" void* _trampoline_end;
+    extern "C" void* trampoline_stack;
 
     /**
      * @brief Waits & timeouts for the AP to boot

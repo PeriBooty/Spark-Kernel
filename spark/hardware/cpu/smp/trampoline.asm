@@ -39,14 +39,14 @@ bits 32
 
     lgdt [gdt64_ptr]
 
-    ;mov esp, trampoline_stack
+    mov eax, init_pml4 - KERNEL_VMA
+    mov cr3, eax
+
+    mov esp, trampoline_stack
 
     mov eax, cr4
     or eax, 0x000000A0
     mov cr4, eax
-
-    mov eax, init_pml4 - KERNEL_VMA
-    mov cr3, eax
 
     mov ecx, 0xC0000080
     rdmsr
@@ -57,6 +57,11 @@ bits 32
     or eax, 0x80000001
     mov cr0, eax
 
+    mov ecx, 0x277
+	mov eax, 0x05010406
+	xor edx, edx
+	wrmsr
+
     jmp 0x08:.long_mode
 .long_mode:
 bits 64
@@ -66,11 +71,18 @@ bits 64
     mov fs, ax
     mov gs, ax
     mov ss, ax
-    call smp_kernel_main
+
+    mov rax, smp_kernel_main - KERNEL_VMA
+    jmp rax
     cli
     hlt
+.l:
+    hlt
+    jmp .l
 
-; data
+global trampoline_stack
+trampoline_stack:
+    dq 0
 
 gdt32_start:
 	dd 0x0
