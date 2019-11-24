@@ -8,7 +8,7 @@ namespace Spark::Apic {
 
         enum IcrFlags {
             TM_LEVEL = 0x8000,
-            LEVELASSERT = 0x400,
+            LEVELASSERT = 0x4000,
             PENDING = 0x1000,
             DM_INIT = 0x500,
             DM_SIPI = 0x600,

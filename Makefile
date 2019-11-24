@@ -19,7 +19,7 @@ endif
 
 .PHONY: all mkdirs bin iso clean
 
-all: clean mkdirs iso
+all: mkdirs iso
 
 mkdirs:
 	mkdir -p out/hardware/devices

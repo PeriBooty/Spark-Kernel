@@ -24,7 +24,6 @@ SECTIONS {
 		_ebss = .;
 	}
 
-	_trampoline_start_virt = .;
 	. = 0x1000;
 
 	.trampoline : AT(KERNEL_SMP) {

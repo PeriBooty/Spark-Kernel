@@ -1,5 +1,6 @@
 #include <hardware/cpu/smp/smp.hpp>
 #include <hardware/mm/mm.hpp>
+#include <hardware/mm/pmm.hpp>
 #include <hardware/mm/vmm.hpp>
 #include <lib/lib.hpp>
 #include <sys/acpi/apic.hpp>
@@ -30,7 +31,7 @@ void Spark::Cpu::Smp::boot_cpu(CpuEntry cpu) {
     if (cpu.bsp)
         return;
 
-    trampoline_stack = malloc(4);
+    trampoline_stack = (void*)((uintptr_t)Pmm::alloc(0x10000 / page_size) + virtual_physical_base);
     char debug[255] = "";
 
     if (trampoline_stack == nullptr) {
