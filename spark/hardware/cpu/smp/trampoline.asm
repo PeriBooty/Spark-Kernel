@@ -12,7 +12,7 @@ global smp_entry
 smp_entry:
     cli
     cld
-    jmp 0x0000:.reset_cs
+    jmp 0x000:.reset_cs
 .reset_cs:
     xor ax, ax
     mov ds, ax
@@ -38,15 +38,14 @@ bits 32
     mov ss, ax
 
     lgdt [gdt64_ptr]
-
-    mov eax, init_pml4 - KERNEL_VMA
-    mov cr3, eax
-
     mov esp, trampoline_stack - KERNEL_VMA
 
     mov eax, cr4
     or eax, 0x000000A0
     mov cr4, eax
+
+    mov eax, init_pml4 - KERNEL_VMA
+    mov cr3, eax
 
     mov ecx, 0xC0000080
     rdmsr
@@ -74,18 +73,7 @@ bits 64
     add rsp, KERNEL_VMA
     mov rax, smp_kernel_main
     jmp rax
-    cli
     hlt
-.l:
-    hlt
-    jmp .l
-
-section .data
-global trampoline_stack
-trampoline_stack:
-    dq 0
-
-section .trampoline
 
 gdt32_start:
 	dd 0x0
@@ -120,3 +108,8 @@ gdt64_ptr:
 gdt64_ptr_high:
 	dw gdt64_end - gdt64_start - 1
 	dq gdt64_start + 0xFFFF800000000000
+
+section .data
+global trampoline_stack
+trampoline_stack:
+    dq 0

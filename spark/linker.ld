@@ -1,10 +1,8 @@
 ENTRY(loader)
-KERNEL_LMA = 0x0000000000200000;
-KERNEL_SMP = 0x0000000000400000;
 KERNEL_VMA = 0xFFFFFFFF80000000;
 
 SECTIONS {
-	. = KERNEL_VMA + KERNEL_LMA;
+	. = KERNEL_VMA + 0x200000;
 
 	.text : AT(ADDR(.text) - KERNEL_VMA) {
 		*(.multiboot)
@@ -26,7 +24,7 @@ SECTIONS {
 
 	. = 0x1000;
 
-	.trampoline : AT(KERNEL_SMP) {
+	.trampoline : AT(0x400000) {
 		_trampoline_start = .;
 		*(.trampoline)
 		_trampoline_end = .;

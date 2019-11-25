@@ -13,6 +13,13 @@ namespace Spark::Cpu::Smp {
     extern "C" void* trampoline_stack;
 
     /**
+     * @brief Get how long the trampoline is
+     * 
+     * @return uint64_t 
+     */
+    uint64_t get_len();
+
+    /**
      * @brief Waits & timeouts for the AP to boot
      * 
      * @return true 

@@ -36,9 +36,9 @@ namespace Spark {
                 };  // Create graphics mode info struct
 
                 Graphics::init(mode_info);  // Initialize display
+                Idt::init();                // Initialize the Interrupt Descriptor Table
+                Acpi::init();               // Initialize ACPI
 
-                Acpi::init();  // Initialize ACPI
-                Idt::init();   // Initialize the Interrupt Descriptor Table
             } else
                 return;  // Not enough memory (Out of bounds?)
         } else

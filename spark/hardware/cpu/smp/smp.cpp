@@ -20,8 +20,12 @@ bool Spark::Cpu::Smp::wait_for_boot() {
     return false;
 }
 
+uint64_t Spark::Cpu::Smp::get_len() {
+    return (uintptr_t)&_trampoline_end - (uintptr_t)&_trampoline_start;
+}
+
 void Spark::Cpu::Smp::init() {
-    uint64_t len = (uintptr_t)&_trampoline_end - (uintptr_t)&_trampoline_start;
+    uint64_t len = get_len();
 
     Vmm::map_pages(Vmm::get_current_context(), &_trampoline_start, &_trampoline_start, (len + page_size - 1) / page_size, Vmm::VirtualMemoryFlags::VMM_PRESENT | Vmm::VirtualMemoryFlags::VMM_WRITE);
     memcpy(&_trampoline_start, (void*)(0x400000 + virtual_physical_base), len);
@@ -31,7 +35,7 @@ void Spark::Cpu::Smp::boot_cpu(CpuEntry cpu) {
     if (cpu.bsp)
         return;
 
-    trampoline_stack = (void*)((uintptr_t)Pmm::alloc(0x10000 / page_size) + virtual_physical_base);
+    trampoline_stack = (void*)((uintptr_t)Pmm::alloc(0x10000 / page_size) + virtual_physical_base + 0x10000);
     char debug[255] = "";
 
     if (trampoline_stack == nullptr) {
@@ -41,9 +45,9 @@ void Spark::Cpu::Smp::boot_cpu(CpuEntry cpu) {
     }
 
     Apic::LocalApic::send_ipi(cpu.lapic_id, Apic::LocalApic::IcrFlags::TM_LEVEL | Apic::LocalApic::IcrFlags::LEVELASSERT | Apic::LocalApic::IcrFlags::DM_INIT);
-    Apic::LocalApic::send_ipi(cpu.lapic_id, Apic::LocalApic::IcrFlags::DM_SIPI | (uint32_t)((uintptr_t)&smp_entry / page_size));
+    Apic::LocalApic::send_ipi(cpu.lapic_id, Apic::LocalApic::IcrFlags::DM_SIPI | (((uintptr_t)&smp_entry >> 12) & 0xFF));
 
-    if (!wait_for_boot()) Apic::LocalApic::send_ipi(cpu.lapic_id, Apic::LocalApic::IcrFlags::DM_SIPI | (uint32_t)((uintptr_t)&smp_entry / page_size));
+    if (!wait_for_boot()) Apic::LocalApic::send_ipi(cpu.lapic_id, Apic::LocalApic::IcrFlags::DM_SIPI | (((uintptr_t)&smp_entry >> 12) & 0xFF));
 
     if (wait_for_boot()) {
         sprintf(debug, "[SMP] Sucessfully booted CPU with lapic ID %d", cpu.lapic_id);

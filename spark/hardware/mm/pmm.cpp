@@ -1,3 +1,4 @@
+#include <hardware/cpu/smp/smp.hpp>
 #include <hardware/mm/mm.hpp>
 #include <hardware/mm/pmm.hpp>
 #include <lib/math.hpp>
@@ -82,10 +83,11 @@ void Spark::Pmm::init(Multiboot::MemoryMap* mmap, size_t mmap_len) {
             if (!len || start + len < memory_base)
                 continue;
 
-            if (start < memory_base)
+            if (start < memory_base) {
                 len -= memory_base - start;
-            start = memory_base;
-            count = len / page_size;
+                start = memory_base;
+                count = len / page_size;
+            }
 
             if (Math::overlaps(bitmap_phys, bitmap_len / 8, start, len)) {
                 if (start < bitmap_phys)
