@@ -38,13 +38,13 @@ bits 32
     mov ss, ax
 
     lgdt [gdt64_ptr]
-    mov esp, trampoline_stack - KERNEL_VMA
+    mov esp, [trampoline_stack - KERNEL_VMA]
 
     mov eax, cr4
     or eax, 0x000000A0
     mov cr4, eax
 
-    mov eax, kernel_pml4 - KERNEL_VMA
+    mov eax, [kernel_pml4 - KERNEL_VMA]
     mov cr3, eax
 
     mov ecx, 0xC0000080
@@ -70,9 +70,9 @@ bits 64
     mov fs, ax
     mov gs, ax
     mov ss, ax
+
     add rsp, KERNEL_VMA
-    mov rax, smp_kernel_main
-    jmp rax
+    call smp_kernel_main
     hlt
 
 gdt32_start:

@@ -7,6 +7,10 @@
 #include <sys/terminal.hpp>
 
 bool trampoline_booted = false;
+extern "C" void* smp_entry;
+extern "C" void* _trampoline_start;
+extern "C" void* _trampoline_end;
+extern "C" void* trampoline_stack;
 
 bool Spark::Cpu::Smp::wait_for_boot() {
     for (uint64_t timeout = 100; timeout > 0; timeout--) {

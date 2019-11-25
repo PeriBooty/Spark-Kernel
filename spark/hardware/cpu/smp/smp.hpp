@@ -7,11 +7,6 @@ namespace Spark::Cpu::Smp {
         bool bsp;
     };
 
-    extern "C" void* smp_entry;
-    extern "C" void* _trampoline_start;
-    extern "C" void* _trampoline_end;
-    extern "C" void* trampoline_stack;
-
     /**
      * @brief Get how long the trampoline is
      * 
