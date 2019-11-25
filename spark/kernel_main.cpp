@@ -49,8 +49,9 @@ namespace Spark {
     }
 
     extern "C" void smp_kernel_main() {
-        Vmm::restore_context();
+        //Vmm::restore_context();
+        Idt::init();
         Cpu::Smp::set_booted();
-        Terminal::write_line("uh oh stinky", 0xe50000);
+        //Terminal::write_line("uh oh stinky", 0xe50000);
     }
 }  // namespace Spark

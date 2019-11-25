@@ -14,7 +14,7 @@ bool Spark::Cpu::Smp::wait_for_boot() {
             return true;
 
         for (uint64_t i = 100000; i > 0; i--)
-            asm("nop");
+            ;
     }
 
     return false;
@@ -35,7 +35,7 @@ void Spark::Cpu::Smp::boot_cpu(CpuEntry cpu) {
     if (cpu.bsp)
         return;
 
-    trampoline_stack = (void*)((uintptr_t)Pmm::alloc(0x10000 / page_size) + virtual_physical_base + 0x10000);
+    trampoline_stack = (void*)((uintptr_t)Pmm::alloc(0x10000 / page_size) + virtual_physical_base);
     char debug[255] = "";
 
     if (trampoline_stack == nullptr) {

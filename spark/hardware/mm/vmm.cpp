@@ -4,7 +4,7 @@
 #include <hardware/mm/vmm.hpp>
 #include <lib/math.hpp>
 
-Spark::Vmm::PageTable* kernel_pml4;
+extern "C" Spark::Vmm::PageTable* kernel_pml4;
 
 Spark::Vmm::PageTableEntries Spark::Vmm::virtual_to_entries(void* virt) {
     uintptr_t addr = (uintptr_t)virt;

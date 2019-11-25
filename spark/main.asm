@@ -26,9 +26,9 @@ mb_header:
     dd 32
 
 section .data
-global init_pml4
+global kernel_pml4
 align 0x1000
-init_pml4:
+kernel_pml4:
     dq init_pdp1 - KERNEL_VMA + 3
     times 255 dq 0
     dq phys_pdp - KERNEL_VMA + 3
@@ -107,7 +107,7 @@ loader:
     mov eax, cr4
     or eax, 0x000000A0
     mov cr4, eax
-    mov eax, init_pml4 - KERNEL_VMA
+    mov eax, kernel_pml4 - KERNEL_VMA
     mov cr3, eax
     mov ecx, 0xC0000080
     rdmsr

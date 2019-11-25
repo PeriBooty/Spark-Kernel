@@ -4,7 +4,7 @@ bits 16
 
 KERNEL_VMA equ 0xFFFFFFFF80000000
 
-extern init_pml4
+extern kernel_pml4
 
 extern smp_kernel_main
 
@@ -44,7 +44,7 @@ bits 32
     or eax, 0x000000A0
     mov cr4, eax
 
-    mov eax, init_pml4 - KERNEL_VMA
+    mov eax, kernel_pml4 - KERNEL_VMA
     mov cr3, eax
 
     mov ecx, 0xC0000080
