@@ -26,7 +26,7 @@ mkdirs:
 	mkdir -p out/hardware/mm
 	mkdir -p out/hardware/cpu/smp
 	mkdir -p out/lib
-	mkdir -p out/sys/acpi
+	mkdir -p out/hardware/acpi
 	mkdir -p out/iso/system
 
 out/%.o: spark/%.cpp

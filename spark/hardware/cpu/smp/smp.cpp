@@ -3,8 +3,8 @@
 #include <hardware/mm/pmm.hpp>
 #include <hardware/mm/vmm.hpp>
 #include <lib/lib.hpp>
-#include <sys/acpi/apic.hpp>
-#include <sys/terminal.hpp>
+#include <hardware/acpi/apic.hpp>
+#include <hardware/terminal.hpp>
 
 bool trampoline_booted = false;
 extern "C" void* smp_entry;

@@ -5,11 +5,11 @@
 #include <hardware/mm/mm.hpp>
 #include <hardware/mm/pmm.hpp>
 #include <hardware/mm/vmm.hpp>
+#include <lib/lib.hpp>
 #include <multiboot.hpp>
-#include <sys/acpi/acpi.hpp>
-#include <sys/idt.hpp>
-#include <sys/panic.hpp>
-#include <sys/terminal.hpp>
+#include <hardware/acpi/acpi.hpp>
+#include <hardware/idt.hpp>
+#include <hardware/terminal.hpp>
 
 namespace Spark {
     /**
@@ -38,20 +38,20 @@ namespace Spark {
                 Graphics::init(mode_info);  // Initialize display
                 Idt::init();                // Initialize the Interrupt Descriptor Table
                 Acpi::init();               // Initialize ACPI
-
             } else
                 return;  // Not enough memory (Out of bounds?)
         } else
             return;  // Bootloader not multiboot compliant
 
         while (1)
-            asm volatile("hlt");  // Halt CPU so we don't hug its usage
+            asm volatile("hlt");
     }
 
     extern "C" void smp_kernel_main() {
-        //Vmm::restore_context();
         Idt::init();
         Cpu::Smp::set_booted();
-        //Terminal::write_line("uh oh stinky", 0xe50000);
+
+        while (1)
+            asm volatile("hlt");
     }
 }  // namespace Spark

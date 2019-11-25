@@ -1,7 +1,7 @@
 #include <hardware/cpu/cpu.hpp>
 #include <lib/lib.hpp>
-#include <sys/panic.hpp>
-#include <sys/terminal.hpp>
+#include <hardware/panic.hpp>
+#include <hardware/terminal.hpp>
 
 void Spark::panic(const char* message) {
     // Draw the text

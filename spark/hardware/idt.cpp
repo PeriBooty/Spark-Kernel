@@ -1,8 +1,8 @@
 #include <hardware/devices/vbe.hpp>
 #include <hardware/port.hpp>
 #include <lib/lib.hpp>
-#include <sys/idt.hpp>
-#include <sys/terminal.hpp>
+#include <hardware/idt.hpp>
+#include <hardware/terminal.hpp>
 
 Spark::Idt::Entry idt_entries[256]{};
 Spark::Idt::Pointer idt_pointer{};
@@ -33,7 +33,6 @@ void Spark::Idt::init() {
     idt_pointer.limit = 256 * sizeof(Entry) - 1;  // Set Interrupt Descriptor Table pointer size
     idt_pointer.base = (uint64_t)&idt_entries;    // Set Interrupt Descriptor Table pointer address
     asm volatile("lidt %0" ::"m"(idt_pointer));   // Load Interrupt Descriptor Table pointer
-    Terminal::write_line("[IDT] Masked all interrupts successfully", 0xFFFFFF);
 }
 
 void Spark::Idt::set_gate(uint8_t vec, uintptr_t function, uint16_t selector, uint8_t flags) {

@@ -3,10 +3,10 @@
 #include <hardware/mm/mm.hpp>
 #include <hardware/port.hpp>
 #include <lib/lib.hpp>
-#include <sys/acpi/acpi.hpp>
-#include <sys/acpi/apic.hpp>
-#include <sys/panic.hpp>
-#include <sys/terminal.hpp>
+#include <hardware/acpi/acpi.hpp>
+#include <hardware/acpi/apic.hpp>
+#include <hardware/panic.hpp>
+#include <hardware/terminal.hpp>
 
 Spark::Acpi::RsdpInfo rsdp_info;
 Spark::Acpi::Madt* madt;

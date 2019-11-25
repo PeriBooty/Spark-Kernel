@@ -2,7 +2,7 @@
 #include <hardware/devices/vbe.hpp>
 #include <hardware/mm/mm.hpp>
 #include <lib/lib.hpp>
-#include <sys/terminal.hpp>
+#include <hardware/terminal.hpp>
 
 Spark::Graphics::ModeInfo mode_info; 
 bool is_working = false;
@@ -12,7 +12,6 @@ void Spark::Graphics::init(ModeInfo gfx_mode_info) {
     mode_info = gfx_mode_info;
     is_working = true;
     Spark::Graphics::clear(0x000000);
-    Spark::Terminal::write_line("[Display] Initialized display successfully", 0xFFFFFF);
 }
 
 void Spark::Graphics::clear(uint32_t color) {

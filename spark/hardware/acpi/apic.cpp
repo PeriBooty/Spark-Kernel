@@ -1,7 +1,7 @@
 #include <hardware/mm/mm.hpp>
 #include <hardware/mm/vmm.hpp>
 #include <hardware/msr.hpp>
-#include <sys/acpi/apic.hpp>
+#include <hardware/acpi/apic.hpp>
 
 uint64_t lapic_base;
 
