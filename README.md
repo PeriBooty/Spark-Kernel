@@ -8,6 +8,7 @@ The kernel for the Spark Operating System.
 - Interrupts
 - Panic
 - Terminal
+- Symmetric Multiprocessing (SMP)
 
 ## Planned features
 - ACPI (currently being worked on)
@@ -18,6 +19,7 @@ The kernel for the Spark Operating System.
 - Drivers
 - API
 - Userspace
+- Multitasking
 
 
 (this list is not sorted by priority)
