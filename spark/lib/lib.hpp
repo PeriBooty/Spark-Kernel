@@ -54,8 +54,9 @@ char* itoa(int value, char* result, int base);
  * 
  * @param n 
  * @param str 
+ * @param caps
  */
-void htoa(int64_t n, char* str);
+void htoa(uint64_t n, char* str, int caps);
 
 /**
  * @brief Copy
