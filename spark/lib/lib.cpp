@@ -77,14 +77,15 @@ int sprintf(char* text, const char* format, ...) {
 
             text += len;
             written += len;
-        } else if (*format == 'x') {
-            format++;
+        } else if (*format == 'x' || *format == 'X') {
             uint64_t item = va_arg(parameters, uint64_t);
 
             char str[32] = "";
 
-            htoa(item, str);
+            htoa(item, str, *format == 'X');
             size_t len = strlen(str);
+
+            format++;
 
             if (maxrem < len) {
                 va_end(parameters);
@@ -94,6 +95,27 @@ int sprintf(char* text, const char* format, ...) {
             for (size_t i = 0; i < len; i++)
                 text[i] = str[i];
 
+            text += len;
+            written += len;
+        } else if (*format == 'p') {
+            format++;
+            void* item = va_arg(parameters, void*);
+            
+            char str[32] = "";
+
+            htoa((uintptr_t)item, str, false);
+            size_t len = strlen(str);
+
+            format++;
+
+            if (maxrem < len) {
+                va_end(parameters);
+                return -1;
+            }
+
+            for (size_t i = 0; i < len; i++)
+                text[i] = str[i];
+            
             text += len;
             written += len;
         } else {
@@ -174,7 +196,7 @@ char* itoa(int value, char* result, int base) {
     return rc;
 }
 
-void htoa(int64_t n, char* str) {
+void htoa(uint64_t n, char* str, bool caps) {
     *str++ = '0';
     *str++ = 'x';
 
@@ -188,9 +210,9 @@ void htoa(int64_t n, char* str) {
             continue;
 
         zeros -= 1;
-        *str++ = tmp >= 0xA ? tmp - 0xA + 'a' : tmp + '0';
+        *str++ = tmp >= 0xA ? tmp - 0xA + (caps ? 'A' : 'a') : tmp + '0';
     }
 
     tmp = n & 0xF;
-    *str++ = tmp >= 0xA ? tmp - 0xA + 'a' : tmp + '0';
+    *str++ = tmp >= 0xA ? tmp - 0xA + (caps ? 'A' : 'a') : tmp + '0';
 }
