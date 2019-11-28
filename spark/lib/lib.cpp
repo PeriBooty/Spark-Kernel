@@ -196,9 +196,9 @@ char* itoa(int value, char* result, int base) {
     return rc;
 }
 
-void htoa(uint64_t n, char* str, int caps) {
+void htoa(uint64_t n, char* str, bool caps) {
     *str++ = '0';
-    *str++ = caps ? 'X' : 'x';
+    *str++ = 'x';
 
     int8_t zeros = 0;
     int64_t tmp;
