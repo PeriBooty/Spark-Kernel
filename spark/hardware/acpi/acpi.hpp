@@ -68,19 +68,19 @@ namespace Spark::Acpi {
         uint32_t flags;
     };
 
-    struct [[gnu::packed]] Madt {
+    struct [[gnu::packed]] MadtHeader {
         SdtHeader header;
         uint32_t apic_address;
         uint32_t flags;
         InterruptController interrupt_controllers[];
     };
 
-    struct [[gnu::packed]] Rsdt {
+    struct [[gnu::packed]] RsdtHeader {
         SdtHeader header;
         uint32_t other_std[];
     };
 
-    struct [[gnu::packed]] Xsdt {
+    struct [[gnu::packed]] XsdtHeader {
         SdtHeader header;
         uint64_t other_std[];
     };
@@ -93,7 +93,21 @@ namespace Spark::Acpi {
         uint64_t base;
     };
 
-    struct [[gnu::packed]] Fadt {
+    struct [[gnu::packed]] McfgEntry {
+        uint64_t ecm_base;
+        uint16_t segment;
+        uint8_t start_bus_number;
+        uint8_t end_bus_number;
+        uint32_t reserved;
+    };
+
+    struct [[gnu::packed]] McfgHeader {
+        SdtHeader header;
+        uint64_t reserved;
+        McfgEntry entries[];
+    };
+
+    struct [[gnu::packed]] FadtHeader {
         SdtHeader header;
         uint32_t firmware_control;
         uint32_t dsdt;
@@ -149,6 +163,14 @@ namespace Spark::Acpi {
         GenericAddress x_gpe0_block;
         GenericAddress x_gpe1_block;
     };
+
+    /**
+     * @brief Gets a table from a signature inside the RSDT/XSDT
+     * 
+     * @param signature 
+     * @return Spark::Acpi::SdtHeader* 
+     */
+    Spark::Acpi::SdtHeader* get_table(const char* signature);
 
     /**
      * @brief Initializes ACPI

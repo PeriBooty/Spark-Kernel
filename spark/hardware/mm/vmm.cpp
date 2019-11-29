@@ -36,7 +36,7 @@ void Spark::Vmm::init() {
 }
 
 inline Spark::Vmm::PageTable* get_or_alloc_ent(Spark::Vmm::PageTable* tab, size_t off, int flags) {
-    uint64_t ent_addr = tab->ents[off] & Spark::Vmm::address_mask;
+    uint64_t ent_addr = tab->ents[off] & address_mask;
 
     if (!ent_addr) {
         ent_addr = tab->ents[off] = (uint64_t)Spark::Pmm::alloc(1);
@@ -52,7 +52,7 @@ inline Spark::Vmm::PageTable* get_or_alloc_ent(Spark::Vmm::PageTable* tab, size_
 }
 
 inline Spark::Vmm::PageTable* get_or_null_ent(Spark::Vmm::PageTable* tab, size_t off) {
-    uint64_t ent_addr = tab->ents[off] & Spark::Vmm::address_mask;
+    uint64_t ent_addr = tab->ents[off] & address_mask;
 
     if (!ent_addr)
         return nullptr;

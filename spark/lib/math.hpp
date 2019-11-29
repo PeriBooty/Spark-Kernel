@@ -5,20 +5,20 @@ namespace Spark::Math {
     /**
      * @brief Rounds up two numbers
      * 
-     * @param N 
-     * @param S 
+     * @param n 
+     * @param s 
      * @return size_t 
      */
-    size_t round_up(size_t N, size_t S);
+    size_t round_up(size_t n, size_t s);
 
     /**
      * @brief Rounds down two numbers
      * 
-     * @param N 
-     * @param S 
+     * @param n 
+     * @param s 
      * @return size_t 
      */
-    size_t round_down(size_t N, size_t S);
+    size_t round_down(size_t n, size_t s);
 
     /**
      * @brief Checks if numbers overlap

@@ -30,6 +30,13 @@ void* malloc(size_t bytes) {
     return (void*)((uintptr_t)out + 16);
 }
 
+void* calloc(size_t blocks) {
+    void* out = malloc(blocks);
+    memset(out, 0, blocks);
+
+    return out;
+}
+
 void* calloc(size_t bytes, size_t elem) {
     void* out = malloc(bytes * elem);
     memset(out, 0, bytes * elem);

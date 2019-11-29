@@ -1,19 +1,42 @@
 #pragma once
 #include <hardware/mm/mm.hpp>
 
-template <class T>
+template <typename T>
 struct NodeLink {
     T data;
-    NodeLink* next;
+    NodeLink<T>* next;
     int index;
 };
 
-template <class T>
+template <typename T>
 class LinkedList {
     using Type = T;
     using Link = NodeLink<T>;
 
 public:
+    template <typename iterator_T>
+    class LinkedListIterator {
+    public:
+        explicit LinkedListIterator(NodeLink<iterator_T>* link)
+            : link(link) {
+        }
+
+        Type& operator*() {
+            return link->data;
+        }
+
+        void operator++() {
+            if (link == nullptr)
+                link = link->next;
+        }
+
+        bool operator!=(LinkedListIterator it) {
+            return link == it.link;
+        }
+
+        NodeLink<iterator_T>* link;
+    };
+
     LinkedList()
         : list(nullptr) {
     }
@@ -50,8 +73,8 @@ public:
         node->data = value;
         node->next = nullptr;
 
-        if (list) {
-            while (last->next)
+        if (list != nullptr) {
+            while (last->next != nullptr)
                 last = last->next;
 
             last->next = node;
@@ -65,7 +88,7 @@ public:
         Link *node = list, *last, *result = (Link*)calloc(sizeof(Link));
         bool found = false;
 
-        while (node) {
+        while (node != nullptr) {
             if (node->index == index) {
                 found = true;
                 break;
@@ -86,10 +109,12 @@ public:
 
                 update();
             }
+
             return true;
         }
 
         free(result);
+
         return false;
     }
 
@@ -97,16 +122,17 @@ public:
         Link *node = list, *last, *result = (Link*)calloc(sizeof(Link));
         bool found = false;
 
-        while (node) {
+        while (node != nullptr) {
             if (node->index == index) {
                 found = true;
                 break;
             }
+
             node = node->next;
         }
 
         if (found) {
-            if (!node->next) {
+            if (node->next == nullptr) {
                 push_back(value);
                 free(result);
             } else {
@@ -114,7 +140,9 @@ public:
                 last = node->next;
                 node->next = result;
                 result->next = last;
+
                 update();
+
                 return true;
             }
         }
@@ -143,7 +171,7 @@ public:
         Link *node = list, *last;
         bool found = false;
 
-        while (node) {
+        while (node != nullptr) {
             if (node->index == index) {
                 found = true;
                 break;
@@ -154,7 +182,8 @@ public:
         }
 
         if (found) {
-            if (node == list) return false;
+            if (node == list)
+                return false;
 
             if (node == list->next) {
                 list = node;
@@ -176,16 +205,20 @@ public:
         if (!list)
             return false;
 
-        Link *node = list, *last;
+        Link *node = list, *last = nullptr;
 
-        if (!node->next) {
+        if (node == nullptr || !node->next) {
             list = nullptr;
             free(node);
         } else {
-            while (node->next) {
+            while (node->next != nullptr) {
                 last = node;
                 node = node->next;
             }
+
+            if (last == nullptr)
+                return false;
+
             last->next = nullptr;
             free(node);
         }
@@ -193,22 +226,30 @@ public:
     }
 
     void clear() {
-        if (!list)
+        if (list == nullptr)
             return;
 
-        while (list)
+        while (list != nullptr)
             pop_back();
+    }
+
+    LinkedListIterator<Type> begin() {
+        return LinkedListIterator<Type>(list);
+    }
+
+    LinkedListIterator<Type> end() {
+        return LinkedListIterator<Type>(nullptr);
     }
 
 private:
     void update() {
-        if (!list)
+        if (list == nullptr)
             return;
 
         Link* last = list;
         int idx = 0;
 
-        while (last) {
+        while (last != nullptr) {
             last->index = idx++;
             last = last->next;
         }
