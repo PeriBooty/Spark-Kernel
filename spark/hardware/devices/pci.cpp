@@ -122,7 +122,7 @@ void Spark::Pci::init() {
             Acpi::McfgEntry& entry = mcfg->entries[i];
             mcfg_entries.push_back(entry);
             char text[255] = "";
-            sprintf(text, "[DEVMGR] MCFG entry #%d %x: %x:%x:0:0 - %x:%x:0:0", i, entry.ecm_base, entry.segment, entry.start_bus_number, entry.segment, entry.end_bus_number);
+            sprintf(text, "[DEVMGR] MCFG entry #%d %p: %d:%d:0:0 - %d:%d:0:0", i, entry.ecm_base, entry.segment, entry.start_bus_number, entry.segment, entry.end_bus_number);
             Terminal::write_line(text, 0xFFFFFF);
         }
 

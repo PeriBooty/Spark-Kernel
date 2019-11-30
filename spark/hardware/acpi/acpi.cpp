@@ -116,14 +116,11 @@ void Spark::Acpi::init() {
             uint32_t a, b, c, d;
             __cpuid(1, a, b, c, d);
 
-            char text2[255] = "";
             Cpu::Smp::CpuEntry cpu_entry{
                 .lapic_id = cpu->id,
                 .bsp = ((b >> 24) & 0xFF) == cpu->id
             };
 
-            sprintf(text2, "[MADT] Detected CPU with lapic ID %d", cpu->id);
-            Terminal::write_line(text2, 0xFFFFFF);
             Cpu::Smp::boot_cpu(cpu_entry);
         }
         offset += interrupt_controller->length;
