@@ -7,7 +7,7 @@
 static Spark::Spinlock mm_lock{};
 static uintptr_t top = memory_base;
 
-void* malloc(size_t bytes) {
+extern "C" void* malloc(size_t bytes) {
     mm_lock.lock();
     bytes = (((bytes + 7) / 8) * 8) + 16;
     size_t pages = (bytes + page_size - 1) / page_size + 1;
@@ -30,21 +30,14 @@ void* malloc(size_t bytes) {
     return (void*)((uintptr_t)out + 16);
 }
 
-void* calloc(size_t blocks) {
+extern "C" void* calloc(size_t blocks) {
     void* out = malloc(blocks);
     memset(out, 0, blocks);
 
     return out;
 }
 
-void* calloc(size_t bytes, size_t elem) {
-    void* out = malloc(bytes * elem);
-    memset(out, 0, bytes * elem);
-
-    return out;
-}
-
-void* realloc(void* old, size_t s) {
+extern "C" void* realloc(void* old, size_t s) {
     void* newm = malloc(s);
 
     if (old) {
@@ -58,7 +51,7 @@ void* realloc(void* old, size_t s) {
     return newm;
 }
 
-bool free(void* memory) {
+extern "C" bool free(void* memory) {
     mm_lock.lock();
 
     size_t size = ((uint64_t)((uintptr_t)memory - 16)) + 16, pages = (size + page_size - 1) / page_size + 1;
@@ -74,7 +67,7 @@ bool free(void* memory) {
     return true;
 }
 
-void* memset(void* s, int c, size_t n) {
+extern "C" void* memset(void* s, int c, size_t n) {
     unsigned char* p = (unsigned char*)s;
     unsigned char fill = (unsigned char)c;
 
@@ -84,7 +77,7 @@ void* memset(void* s, int c, size_t n) {
     return s;
 }
 
-void* memcpy(void* dest, const void* src, size_t len) {
+extern "C" void* memcpy(void* dest, const void* src, size_t len) {
     char *d = (char*)dest, *s = (char*)src;
 
     while (len--)

@@ -26,16 +26,14 @@ The kernel for the Spark Operating System.
 
 ## Compiling the kernel
 ### Compiling the kernel - the dependencies
-- binutils*
-- gcc*
+- binutils
+- CLang
 - make
 - nasm
-- xorriso
-- grub-common
-- grub-pc-bin
-
-***You need a x86_64-elf cross-compiler to build this kernel, here's a guide on [how to get one](https://wiki.osdev.org/GCC_Cross-Compiler)**
+- xorriso *or similar*
+- grub-common *or similar*
+- grub-pc-bin *or similar*
 
 Run `make` where the Makefile is and an ISO will automagically be made for you inside the `out` directory.
 
-For debug builds run `make TARGET=debug`, and it will optimize the code for debugging experience (output directory doesn't change).
+For debug builds run `make TARGET=DEBUG`, and it will optimize the code for debugging experience (output directory doesn't change).

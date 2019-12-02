@@ -25,7 +25,7 @@ enum MemoryFlags {
  * @param blocks amount of memory
  * @return void*
  */
-void* malloc(size_t blocks);
+extern "C" void* malloc(size_t blocks);
 
 /**
  * @brief Safely allocates memory by zeroing it
@@ -33,7 +33,7 @@ void* malloc(size_t blocks);
  * @param blocks amount of memory
  * @return void*
  */
-void* calloc(size_t blocks);
+extern "C" void* calloc(size_t blocks);
 
 /**
  * @brief Frees memory
@@ -42,7 +42,7 @@ void* calloc(size_t blocks);
  * @return true 
  * @return false 
  */
-bool free(void* memory);
+extern "C" bool free(void* memory);
 
 /**
  * @brief Fills memory with something
@@ -52,7 +52,7 @@ bool free(void* memory);
  * @param n 
  * @return void* 
  */
-void* memset(void* s, int c, size_t n);
+extern "C" void* memset(void* s, int c, size_t n);
 
 /**
  * @brief Copies memory
@@ -62,4 +62,4 @@ void* memset(void* s, int c, size_t n);
  * @param len 
  * @return void* 
  */
-void* memcpy(void* dest, const void* src, size_t len);
+extern "C" void* memcpy(void* dest, const void* src, size_t len);

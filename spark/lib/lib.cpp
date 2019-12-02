@@ -216,3 +216,10 @@ void htoa(uint64_t n, char* str, bool caps) {
     tmp = n & 0xF;
     *str++ = tmp >= 0xA ? tmp - 0xA + (caps ? 'A' : 'a') : tmp + '0';
 }
+
+// fuck off clang
+extern "C" void atexit(...) {
+
+
+    
+}
