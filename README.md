@@ -26,14 +26,12 @@ The kernel for the Spark Operating System.
 
 ## Compiling the kernel
 ### Compiling the kernel - the dependencies
-- binutils
 - CLang
-- make
-- nasm
+- CMake
+- GNU Make
+- Nasm
 - xorriso *or similar*
 - grub-common *or similar*
 - grub-pc-bin *or similar*
 
-Run `make` where the Makefile is and an ISO will automagically be made for you inside the `out` directory.
-
-For debug builds run `make TARGET=DEBUG`, and it will optimize the code for debugging experience (output directory doesn't change).
+Building is easy, just use CMake like you would with any other project.
