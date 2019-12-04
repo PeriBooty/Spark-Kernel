@@ -13,10 +13,3 @@ file (GLOB_RECURSE ASM_SOURCES "Spark/*.asm")
 include_directories ("${CMAKE_CURRENT_SOURCE_DIR}/Spark")
 
 add_executable (kernel.bin ${CPP_SOURCES} ${ASM_SOURCES})
-
-add_custom_command(TARGET kernel.bin
-	COMMAND mkdir "-p" "${CMAKE_CURRENT_BINARY_DIR}/iso/system"
-	COMMAND mkdir "-p" "${CMAKE_CURRENT_BINARY_DIR}/iso/boot/grub"
-	COMMAND cp "${CMAKE_CURRENT_BINARY_DIR}/kernel.bin" "${CMAKE_CURRENT_BINARY_DIR}/iso/system/kernel.bin"
-	COMMAND cp "${CMAKE_CURRENT_SOURCE_DIR}/grub.cfg" "${CMAKE_CURRENT_BINARY_DIR}/iso/boot/grub/grub.cfg"
-	COMMAND grub-mkrescue "--output=${CMAKE_CURRENT_BINARY_DIR}/spark.iso" "${CMAKE_CURRENT_BINARY_DIR}/iso")
