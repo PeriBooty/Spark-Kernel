@@ -1,11 +1,11 @@
 #include <lib/math.hpp>
 
-size_t Spark::Math::round_up(size_t N, size_t S) {
-    return ((N + S - 1) / S) * S;
+size_t Spark::Math::round_up(size_t n, size_t s) {
+    return ((n + s - 1) / s) * s;
 }
 
-size_t Spark::Math::round_down(size_t N, size_t S) {
-    return (N / S) * S;
+size_t Spark::Math::round_down(size_t n, size_t s) {
+    return (n / s) * s;
 }
 
 size_t Spark::Math::overlaps(size_t a, size_t as, size_t b, size_t bs) {

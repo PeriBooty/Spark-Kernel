@@ -1,11 +1,11 @@
 #pragma once
 #include <stddef.h>
 #include <stdint.h>
-constexpr size_t virtual_kernel_base = 0xFFFFFFFF80000000;
-constexpr size_t virtual_physical_base = 0xFFFF800000000000;
-constexpr size_t page_size = 0x1000;
-constexpr size_t memory_base = 0x2000000;
-constexpr size_t heap_base = 0x200000000;
+constexpr inline size_t virtual_kernel_base = 0xFFFFFFFF80000000;
+constexpr inline size_t virtual_physical_base = 0xFFFF800000000000;
+constexpr inline size_t page_size = 0x1000;
+constexpr inline size_t memory_base = 0x2000000;
+constexpr inline size_t heap_base = 0x200000000;
 
 /**
  * @brief The memory flags
@@ -25,7 +25,7 @@ enum MemoryFlags {
  * @param blocks amount of memory
  * @return void*
  */
-void* malloc(size_t blocks);
+extern "C" void* malloc(size_t blocks);
 
 /**
  * @brief Safely allocates memory by zeroing it
@@ -33,7 +33,7 @@ void* malloc(size_t blocks);
  * @param blocks amount of memory
  * @return void*
  */
-void* calloc(size_t blocks);
+extern "C" void* calloc(size_t blocks);
 
 /**
  * @brief Frees memory
@@ -42,7 +42,7 @@ void* calloc(size_t blocks);
  * @return true 
  * @return false 
  */
-bool free(void* memory);
+extern "C" bool free(void* memory);
 
 /**
  * @brief Fills memory with something
@@ -52,7 +52,7 @@ bool free(void* memory);
  * @param n 
  * @return void* 
  */
-void* memset(void* s, int c, size_t n);
+extern "C" void* memset(void* s, int c, size_t n);
 
 /**
  * @brief Copies memory
@@ -62,4 +62,4 @@ void* memset(void* s, int c, size_t n);
  * @param len 
  * @return void* 
  */
-void* memcpy(void* dest, const void* src, size_t len);
+extern "C" void* memcpy(void* dest, const void* src, size_t len);

@@ -2,10 +2,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-namespace Spark::Vmm {
-    constexpr inline size_t flag_mask = 0xFFF | (1ull << 63);
-    constexpr inline size_t address_mask = ~(flag_mask);
+constexpr inline size_t address_mask = ~(0xFFF | (1ull << 63));
 
+namespace Spark::Vmm {
     /**
      * @brief The virtual memory flags
      * 
